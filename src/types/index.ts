@@ -1,5 +1,5 @@
 export type AccountType = 'BANK' | 'WALLET' | 'CASH'
-export type TransactionType = 'INCOME' | 'EXPENSE'
+export type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER'
 
 export interface User {
   id: string
@@ -20,6 +20,7 @@ export interface Account {
   balance: number
   color: string
   icon: string
+  order: number
   createdAt: Date
   updatedAt: Date
 }
@@ -40,7 +41,8 @@ export interface Transaction {
   id: string
   userId: string
   accountId: string
-  categoryId: string
+  toAccountId?: string
+  categoryId?: string
   type: TransactionType
   title: string
   amount: number
@@ -50,6 +52,7 @@ export interface Transaction {
   createdAt: Date
   updatedAt: Date
   account?: Account
+  toAccount?: Account
   category?: Category
 }
 

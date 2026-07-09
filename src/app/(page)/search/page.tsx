@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTransactions } from '@/hooks/useTransactions'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
-import { Search, Loader2, Filter } from 'lucide-react'
+import { Search, Loader2 } from 'lucide-react'
 import type { Transaction } from '@/types'
 
 export default function SearchPage() {

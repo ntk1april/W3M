@@ -21,7 +21,7 @@ export async function GET() {
 
     const accounts = await prisma.account.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
     })
 
     return NextResponse.json(accounts)

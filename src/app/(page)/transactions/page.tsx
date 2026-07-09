@@ -1,64 +1,93 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useTransactions, useDeleteTransaction } from '@/hooks/useTransactions'
-import { useAccounts } from '@/hooks/useAccounts'
-import { useCategories } from '@/hooks/useDashboard'
-import { formatCurrency, formatDate } from '@/lib/utils'
-import { cn } from '@/lib/utils'
-import { Loader2, Search, Filter, Trash2, ChevronDown, ArrowLeftRight } from 'lucide-react'
-import type { Transaction, Account, Category } from '@/types'
+import { useState } from "react";
+import { useTransactions, useDeleteTransaction } from "@/hooks/useTransactions";
+import { useAccounts } from "@/hooks/useAccounts";
+import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import {
+  Loader2,
+  Search,
+  Trash2,
+  Edit2,
+  ChevronDown,
+  ArrowLeftRight,
+} from "lucide-react";
+import type { Transaction, Account } from "@/types";
+import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
+import { EditTransactionDialog } from "@/components/transactions/edit-transaction-dialog";
 
 const periodOptions = [
-  { label: 'All Time', value: '' },
-  { label: 'Today', value: 'today' },
-  { label: 'This Week', value: 'week' },
-  { label: 'This Month', value: 'month' },
-  { label: 'This Year', value: 'year' },
-]
+  { label: "All Time", value: "" },
+  { label: "Today", value: "today" },
+  { label: "This Week", value: "week" },
+  { label: "This Month", value: "month" },
+  { label: "This Year", value: "year" },
+];
 
-function getDateRange(period: string): { startDate?: string; endDate?: string } {
-  const now = new Date()
+function getDateRange(period: string): {
+  startDate?: string;
+  endDate?: string;
+} {
+  const now = new Date();
+  const endOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+  ).toISOString();
+
   switch (period) {
-    case 'today':
+    case "today":
       return {
-        startDate: new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString(),
-        endDate: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString(),
-      }
-    case 'week': {
-      const day = now.getDay()
-      const diff = now.getDate() - day
+        startDate: new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        ).toISOString(),
+        endDate: endOfDay,
+      };
+    case "week": {
+      const day = now.getDay();
+      const diff = now.getDate() - day;
       return {
-        startDate: new Date(now.getFullYear(), now.getMonth(), diff).toISOString(),
-        endDate: now.toISOString(),
-      }
+        startDate: new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          diff,
+        ).toISOString(),
+        endDate: endOfDay,
+      };
     }
-    case 'month':
+    case "month":
       return {
         startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
-        endDate: now.toISOString(),
-      }
-    case 'year':
+        endDate: endOfDay,
+      };
+    case "year":
       return {
         startDate: new Date(now.getFullYear(), 0, 1).toISOString(),
-        endDate: now.toISOString(),
-      }
+        endDate: endOfDay,
+      };
     default:
-      return {}
+      return {};
   }
 }
 
 export default function TransactionsPage() {
-  const [search, setSearch] = useState('')
-  const [period, setPeriod] = useState('')
-  const [typeFilter, setTypeFilter] = useState('')
-  const [accountFilter, setAccountFilter] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [search, setSearch] = useState("");
+  const [period, setPeriod] = useState("today");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [accountFilter, setAccountFilter] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
 
-  const dateRange = getDateRange(period)
-  const { data: accounts = [] } = useAccounts()
-  const { data: categories = [] } = useCategories()
-  const deleteTransaction = useDeleteTransaction()
+  const dateRange = getDateRange(period);
+  const { data: accounts = [] } = useAccounts();
+  const deleteTransaction = useDeleteTransaction();
 
   const { data, isLoading } = useTransactions({
     search: debouncedSearch,
@@ -66,22 +95,36 @@ export default function TransactionsPage() {
     accountId: accountFilter || undefined,
     ...dateRange,
     limit: 100,
-  })
+  });
 
-  const transactions = data?.transactions || []
-  const total = data?.total || 0
+  const transactions = data?.transactions || [];
+  const total = data?.total || 0;
 
   // Stats
-  const totalIncome = transactions.filter((t: Transaction) => t.type === 'INCOME').reduce((s: number, t: Transaction) => s + t.amount, 0)
-  const totalExpense = transactions.filter((t: Transaction) => t.type === 'EXPENSE').reduce((s: number, t: Transaction) => s + t.amount, 0)
+  const totalIncome = transactions
+    .filter((t: Transaction) => t.type === "INCOME")
+    .reduce((s: number, t: Transaction) => s + t.amount, 0);
+  const totalExpense = transactions
+    .filter((t: Transaction) => t.type === "EXPENSE")
+    .reduce((s: number, t: Transaction) => s + t.amount, 0);
 
   const handleSearch = (value: string) => {
-    setSearch(value)
-    clearTimeout((window as typeof window & { searchTimeout?: ReturnType<typeof setTimeout> }).searchTimeout)
-    ;(window as typeof window & { searchTimeout?: ReturnType<typeof setTimeout> }).searchTimeout = setTimeout(() => {
-      setDebouncedSearch(value)
-    }, 400)
-  }
+    setSearch(value);
+    clearTimeout(
+      (
+        window as typeof window & {
+          searchTimeout?: ReturnType<typeof setTimeout>;
+        }
+      ).searchTimeout,
+    );
+    (
+      window as typeof window & {
+        searchTimeout?: ReturnType<typeof setTimeout>;
+      }
+    ).searchTimeout = setTimeout(() => {
+      setDebouncedSearch(value);
+    }, 400);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -89,19 +132,28 @@ export default function TransactionsPage() {
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-card rounded-2xl border border-border p-4">
           <p className="text-xs text-muted-foreground mb-1">Total Income</p>
-          <p className="text-xl font-bold text-green-600 dark:text-green-400">+{formatCurrency(totalIncome)}</p>
+          <p className="text-xl font-bold text-green-600 dark:text-green-400">
+            +{formatCurrency(totalIncome)}
+          </p>
         </div>
         <div className="bg-card rounded-2xl border border-border p-4">
           <p className="text-xs text-muted-foreground mb-1">Total Expense</p>
-          <p className="text-xl font-bold text-red-600 dark:text-red-400">-{formatCurrency(totalExpense)}</p>
+          <p className="text-xl font-bold text-red-600 dark:text-red-400">
+            -{formatCurrency(totalExpense)}
+          </p>
         </div>
         <div className="bg-card rounded-2xl border border-border p-4">
           <p className="text-xs text-muted-foreground mb-1">Net Balance</p>
-          <p className={cn(
-            'text-xl font-bold',
-            totalIncome - totalExpense >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-          )}>
-            {totalIncome - totalExpense >= 0 ? '+' : ''}{formatCurrency(totalIncome - totalExpense)}
+          <p
+            className={cn(
+              "text-xl font-bold",
+              totalIncome - totalExpense >= 0
+                ? "text-green-600 dark:text-green-400"
+                : "text-red-600 dark:text-red-400",
+            )}
+          >
+            {totalIncome - totalExpense >= 0 ? "+" : ""}
+            {formatCurrency(totalIncome - totalExpense)}
           </p>
         </div>
       </div>
@@ -131,7 +183,9 @@ export default function TransactionsPage() {
                 focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
             >
               {periodOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
             <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
@@ -148,6 +202,7 @@ export default function TransactionsPage() {
               <option value="">All Types</option>
               <option value="INCOME">Income</option>
               <option value="EXPENSE">Expense</option>
+              <option value="TRANSFER">Transfer</option>
             </select>
             <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
           </div>
@@ -162,7 +217,9 @@ export default function TransactionsPage() {
             >
               <option value="">All Accounts</option>
               {accounts.map((acc: Account) => (
-                <option key={acc.id} value={acc.id}>{acc.name}</option>
+                <option key={acc.id} value={acc.id}>
+                  {acc.name}
+                </option>
               ))}
             </select>
             <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
@@ -193,7 +250,7 @@ export default function TransactionsPage() {
               <div className="col-span-1">Cat.</div>
               <div className="col-span-4">Name</div>
               <div className="col-span-2">Account</div>
-              <div className="col-span-2">Date</div>
+              <div className="col-span-2">Date/Time</div>
               <div className="col-span-2 text-right">Amount</div>
               <div className="col-span-1 text-right">Act.</div>
             </div>
@@ -206,21 +263,40 @@ export default function TransactionsPage() {
                 {/* Category Icon */}
                 <div className="col-span-1">
                   <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-base">
-                    {transaction.category?.icon || '💸'}
+                    {transaction.type === "TRANSFER"
+                      ? "🔄"
+                      : transaction.category?.icon || "💸"}
                   </div>
                 </div>
 
                 {/* Name */}
                 <div className="col-span-4 min-w-0">
-                  <p className="font-medium text-sm truncate">{transaction.title}</p>
+                  <p className="font-medium text-sm truncate">
+                    {transaction.title}
+                  </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className={cn(
-                      'text-xs px-1.5 py-0.5 rounded-full font-medium',
-                      transaction.type === 'INCOME' ? 'badge-income' : 'badge-expense'
-                    )}>
+                    <span
+                      className={cn(
+                        "text-xs px-1.5 py-0.5 rounded-full font-medium",
+                        transaction.type === "INCOME"
+                          ? "badge-income"
+                          : transaction.type === "TRANSFER"
+                            ? "text-blue-600 dark:text-blue-400 bg-blue-900/10 dark:bg-blue-500/10 border border-blue-600 dark:border-blue-400"
+                            : "badge-expense",
+                      )}
+                    >
                       {transaction.type}
                     </span>
-                    <span className="text-xs text-muted-foreground">{transaction.category?.name}</span>
+                    {transaction.type === "TRANSFER" ? (
+                      <span className="text-xs text-muted-foreground">
+                        {transaction.account?.name} →{" "}
+                        {transaction.toAccount?.name}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">
+                        {transaction.category?.name}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -229,33 +305,56 @@ export default function TransactionsPage() {
                   <div className="flex items-center gap-1.5">
                     <div
                       className="w-2 h-2 rounded-full shrink-0"
-                      style={{ background: transaction.account?.color || '#6B7280' }}
+                      style={{
+                        background: transaction.account?.color || "#6B7280",
+                      }}
                     />
-                    <span className="text-sm truncate">{transaction.account?.name}</span>
+                    <span className="text-sm truncate">
+                      {transaction.account?.name}
+                    </span>
                   </div>
                 </div>
 
                 {/* Date */}
                 <div className="col-span-2">
-                  <p className="text-sm text-muted-foreground">{formatDate(transaction.date)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDateTime(transaction.date)}
+                  </p>
                 </div>
 
                 {/* Amount */}
                 <div className="col-span-2 text-right">
-                  <p className={cn(
-                    'font-bold text-sm',
-                    transaction.type === 'INCOME' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                  )}>
-                    {transaction.type === 'INCOME' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                  <p
+                    className={cn(
+                      "font-bold text-sm",
+                      transaction.type === "INCOME"
+                        ? "text-green-600 dark:text-green-400"
+                        : transaction.type === "TRANSFER"
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-red-600 dark:text-red-400",
+                    )}
+                  >
+                    {transaction.type === "INCOME"
+                      ? "+"
+                      : transaction.type === "TRANSFER"
+                        ? ""
+                        : "-"}
+                    {formatCurrency(transaction.amount)}
                   </p>
                 </div>
 
                 {/* Actions */}
-                <div className="col-span-1 flex justify-end">
+                <div className="col-span-1 flex justify-end gap-2">
+                  <button
+                    onClick={() => setEditingTransaction(transaction)}
+                    className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
                   <button
                     onClick={() => {
-                      if (confirm('Delete this transaction?')) {
-                        deleteTransaction.mutate(transaction.id)
+                      if (confirm("Delete this transaction?")) {
+                        deleteTransaction.mutate(transaction.id);
                       }
                     }}
                     className="w-7 h-7 rounded-lg hover:bg-destructive/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
@@ -268,6 +367,16 @@ export default function TransactionsPage() {
           </div>
         )}
       </div>
+
+      {editingTransaction && (
+        <EditTransactionDialog
+          open={!!editingTransaction}
+          onOpenChange={(open) => {
+            if (!open) setEditingTransaction(null);
+          }}
+          transactionToEdit={editingTransaction}
+        />
+      )}
     </div>
-  )
+  );
 }

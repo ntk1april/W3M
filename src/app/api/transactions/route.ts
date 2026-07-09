@@ -38,6 +38,7 @@ export async function GET(request: Request) {
         where,
         include: {
           account: true,
+          toAccount: true,
           category: true,
         },
         orderBy: { date: 'desc' },
@@ -65,34 +66,52 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { type, title, amount, date, accountId, categoryId, note, receipt } = body
-
-    // Create transaction in a database transaction for atomicity
-    const [transaction] = await prisma.$transaction([
+    const { type, title, amount, date, accountId, toAccountId, categoryId, note, receipt } = body
+    const parsedAmount = parseFloat(amount)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dbOperations: any[] = [
       prisma.transaction.create({
         data: {
           userId: user.id,
           accountId,
-          categoryId,
+          toAccountId,
+          categoryId: type === 'TRANSFER' ? null : categoryId,
           type,
           title,
-          amount: parseFloat(amount),
+          amount: parsedAmount,
           note,
           receipt,
           date: new Date(date),
         },
-        include: { account: true, category: true },
-      }),
-      // Update account balance
-      prisma.account.update({
-        where: { id: accountId, userId: user.id },
-        data: {
-          balance: {
-            [type === 'INCOME' ? 'increment' : 'decrement']: parseFloat(amount),
+        include: { account: true, toAccount: true, category: true },
+      })
+    ]
+
+    if (type === 'TRANSFER' && toAccountId) {
+      dbOperations.push(
+        prisma.account.update({
+          where: { id: accountId, userId: user.id },
+          data: { balance: { decrement: parsedAmount } },
+        }),
+        prisma.account.update({
+          where: { id: toAccountId, userId: user.id },
+          data: { balance: { increment: parsedAmount } },
+        })
+      )
+    } else {
+      dbOperations.push(
+        prisma.account.update({
+          where: { id: accountId, userId: user.id },
+          data: {
+            balance: {
+              [type === 'INCOME' ? 'increment' : 'decrement']: parsedAmount,
+            },
           },
-        },
-      }),
-    ])
+        })
+      )
+    }
+
+    const [transaction] = await prisma.$transaction(dbOperations)
 
     return NextResponse.json(transaction, { status: 201 })
   } catch (error) {

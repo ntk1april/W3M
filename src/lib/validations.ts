@@ -24,12 +24,13 @@ export const accountSchema = z.object({
 })
 
 export const transactionSchema = z.object({
-  type: z.enum(['INCOME', 'EXPENSE']),
+  type: z.enum(['INCOME', 'EXPENSE', 'TRANSFER']),
   title: z.string().min(1, 'Title is required'),
   amount: z.number().positive('Amount must be positive'),
   date: z.date(),
   accountId: z.string().min(1, 'Account is required'),
-  categoryId: z.string().min(1, 'Category is required'),
+  toAccountId: z.string().optional(),
+  categoryId: z.string().optional(),
   note: z.string().optional(),
   receipt: z.string().optional(),
 })

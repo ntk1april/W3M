@@ -1,5 +1,4 @@
 import { PrismaClient } from '@prisma/client'
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../src/lib/utils'
 
 const prisma = new PrismaClient()
 

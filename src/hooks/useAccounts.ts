@@ -16,7 +16,7 @@ export function useAccounts() {
 export function useCreateAccount() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (data: Omit<Account, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (data: Omit<Account, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'order'>) => {
       const res = await fetch('/api/accounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,5 +69,40 @@ export function useDeleteAccount() {
       toast.success('Account deleted')
     },
     onError: () => toast.error('Failed to delete account'),
+  })
+}
+
+export function useReorderAccounts() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (accountIds: string[]) => {
+      const res = await fetch('/api/accounts/reorder', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountIds }),
+      })
+      if (!res.ok) throw new Error('Failed to reorder accounts')
+      return res.json()
+    },
+    onMutate: async (newOrderIds) => {
+      await queryClient.cancelQueries({ queryKey: ['accounts'] })
+      const previousAccounts = queryClient.getQueryData<Account[]>(['accounts'])
+      if (previousAccounts) {
+        const newAccounts = [...previousAccounts].sort((a, b) => 
+          newOrderIds.indexOf(a.id) - newOrderIds.indexOf(b.id)
+        )
+        queryClient.setQueryData(['accounts'], newAccounts)
+      }
+      return { previousAccounts }
+    },
+    onError: (err, newOrderIds, context) => {
+      if (context?.previousAccounts) {
+        queryClient.setQueryData(['accounts'], context.previousAccounts)
+      }
+      toast.error('Failed to save account order')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+    }
   })
 }

@@ -3,31 +3,32 @@
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X, ChevronLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { X, Loader2, CheckCircle2 } from "lucide-react";
 import { transactionSchema, type TransactionInput } from "@/lib/validations";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCategories } from "@/hooks/useDashboard";
-import { useCreateTransaction } from "@/hooks/useTransactions";
+import { useUpdateTransaction } from "@/hooks/useTransactions";
 import { cn, formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import type { Category, Account, Transaction } from "@/types";
 
-type Step = 1 | 2;
 
-interface AddTransactionDialogProps {
+
+interface EditTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  transactionToEdit: Transaction;
 }
 
-export function AddTransactionDialog({
+export function EditTransactionDialog({
   open,
   onOpenChange,
-}: AddTransactionDialogProps) {
-  const [step, setStep] = useState<Step>(1);
+  transactionToEdit,
+}: EditTransactionDialogProps) {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const { data: accounts = [] } = useAccounts();
   const { data: categories = [] } = useCategories();
-  const createTransaction = useCreateTransaction();
+  const updateTransaction = useUpdateTransaction();
 
   const {
     register,
@@ -46,18 +47,18 @@ export function AddTransactionDialog({
   });
 
   useEffect(() => {
-    if (open) {
+    if (open && transactionToEdit) {
       reset({
-        type: "EXPENSE",
-        date: new Date(),
-        amount: "" as unknown as number,
-        categoryId: "",
-        accountId: "",
-        toAccountId: "",
+        title: transactionToEdit.title,
+        amount: String(transactionToEdit.amount) as unknown as number,
+        type: transactionToEdit.type,
+        categoryId: transactionToEdit.categoryId || "",
+        accountId: transactionToEdit.accountId,
+        toAccountId: transactionToEdit.toAccountId || "",
+        date: new Date(transactionToEdit.date),
       });
-      setStep(1);
     }
-  }, [open, reset]);
+  }, [open, transactionToEdit, reset]);
 
   const selectedType = watch("type");
   const selectedCategoryId = watch("categoryId");
@@ -69,12 +70,12 @@ export function AddTransactionDialog({
 
   const handleClose = () => {
     onOpenChange(false);
-    setStep(1);
     reset();
   };
 
   const onSubmit = async (data: TransactionInput) => {
-    await createTransaction.mutateAsync({
+    await updateTransaction.mutateAsync({
+      id: transactionToEdit.id,
       ...data,
       amount: Number(data.amount),
     });
@@ -99,19 +100,10 @@ export function AddTransactionDialog({
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
           <div className="flex items-center gap-3">
-            {step > 1 && (
-              <button
-                onClick={() => setStep(1)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            )}
             <div>
               <h2 className="font-bold text-lg">
-                Add Transaction
+                Edit Transaction
               </h2>
-              <p className="text-xs text-muted-foreground">Step {step} of 2</p>
             </div>
           </div>
           <button
@@ -122,149 +114,7 @@ export function AddTransactionDialog({
           </button>
         </div>
 
-        {/* Step Indicator */}
-        <div className="flex px-5 pt-4 gap-2">
-          {Array.from({ length: 2 }).map((_, i) => {
-            const s = i + 1;
-            const isActive = s <= step;
-            return (
-              <div
-                key={s}
-                className={cn(
-                  "h-1 flex-1 rounded-full transition-all duration-300",
-                  isActive ? "bg-primary" : "bg-muted",
-                )}
-              />
-            );
-          })}
-        </div>
-
         <form onSubmit={handleSubmit(onSubmit)}>
-          {/* Step 1: Type Selection */}
-          {step === 1 && (
-            <div className="p-5 space-y-4">
-              <p className="text-sm font-medium text-muted-foreground">
-                Choose transaction type
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setValue("type", "EXPENSE");
-                    setValue("categoryId", "");
-                  }}
-                  className={cn(
-                    "p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-200 relative",
-                    selectedType === "EXPENSE"
-                      ? "border-red-500 bg-red-50 dark:bg-red-950/30"
-                      : "border-border bg-card hover:border-muted-foreground/30",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "w-14 h-14 rounded-2xl flex items-center justify-center text-2xl",
-                      selectedType === "EXPENSE"
-                        ? "bg-red-100 dark:bg-red-900/50"
-                        : "bg-muted",
-                    )}
-                  >
-                    💸
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">Expense</p>
-                    <p className="text-xs text-muted-foreground">
-                      Money going out
-                    </p>
-                  </div>
-                  {selectedType === "EXPENSE" && (
-                    <CheckCircle2 className="w-5 h-5 text-red-500 absolute top-3 right-3" />
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setValue("type", "INCOME");
-                    setValue("categoryId", "");
-                  }}
-                  className={cn(
-                    "p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-200 relative",
-                    selectedType === "INCOME"
-                      ? "border-green-500 bg-green-50 dark:bg-green-950/30"
-                      : "border-border bg-card hover:border-muted-foreground/30",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "w-14 h-14 rounded-2xl flex items-center justify-center text-2xl",
-                      selectedType === "INCOME"
-                        ? "bg-green-100 dark:bg-green-900/50"
-                        : "bg-muted",
-                    )}
-                  >
-                    💰
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">Income</p>
-                    <p className="text-xs text-muted-foreground">
-                      Money coming in
-                    </p>
-                  </div>
-                  {selectedType === "INCOME" && (
-                    <CheckCircle2 className="w-5 h-5 text-green-500 absolute top-3 right-3" />
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setValue("type", "TRANSFER");
-                    setValue("categoryId", "");
-                  }}
-                  className={cn(
-                    "p-4 sm:p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-200 relative",
-                    selectedType === "TRANSFER"
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-                      : "border-border bg-card hover:border-muted-foreground/30",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl",
-                      selectedType === "TRANSFER"
-                        ? "bg-blue-100 dark:bg-blue-900/50"
-                        : "bg-muted",
-                    )}
-                  >
-                    🔄
-                  </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-sm">Transfer</p>
-                    <p className="text-xs text-muted-foreground hidden sm:block">
-                      Between accounts
-                    </p>
-                  </div>
-                  {selectedType === "TRANSFER" && (
-                    <CheckCircle2 className="w-5 h-5 text-blue-500 absolute top-3 right-3" />
-                  )}
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="w-full py-3 rounded-xl font-semibold text-white mt-2"
-                style={{
-                  background: "linear-gradient(135deg, #2563EB, #7C3AED)",
-                }}
-              >
-                Continue →
-              </button>
-            </div>
-          )}
-
-          {/* Step 2: Transaction Details */}
-          {step === 2 && (
             <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
               {/* Category Dropdown (if not transfer) */}
               {selectedType !== "TRANSFER" && (
@@ -525,7 +375,7 @@ export function AddTransactionDialog({
               <button
                 type="submit"
                 disabled={
-                  createTransaction.isPending ||
+                  updateTransaction.isPending ||
                   !selectedAccountId ||
                   (selectedType !== "TRANSFER" && !selectedCategoryId) ||
                   (selectedType === "TRANSFER" && !watch("toAccountId"))
@@ -533,17 +383,16 @@ export function AddTransactionDialog({
                 className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-2xl
                   flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {createTransaction.isPending ? (
+                {updateTransaction.isPending ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
                     <CheckCircle2 className="w-5 h-5" />
-                    Complete
+                    "Save Changes"
                   </>
                 )}
               </button>
             </div>
-          )}
         </form>
       </div>
     </div>

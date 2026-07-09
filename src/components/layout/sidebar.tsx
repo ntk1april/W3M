@@ -6,11 +6,9 @@ import {
   LayoutDashboard,
   Wallet,
   ArrowLeftRight,
-  BarChart3,
   Search,
   Settings,
   LogOut,
-  X,
   TrendingUp,
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
@@ -18,7 +16,6 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import type { User } from '@supabase/supabase-js'
-import { useState } from 'react'
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },

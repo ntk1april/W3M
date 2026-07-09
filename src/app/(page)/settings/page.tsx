@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+
 import { useTheme } from 'next-themes'
-import { Moon, Sun, Download, Database, ChevronRight, Bell, Shield, Palette } from 'lucide-react'
+import { Download, Database, Shield, Palette } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'

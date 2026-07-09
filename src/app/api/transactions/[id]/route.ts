@@ -17,7 +17,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { type, title, amount, date, accountId, categoryId, note, receipt } = body
+    const { type, title, amount, date, accountId, toAccountId, categoryId, note, receipt } = body
 
     // Get original transaction to reverse balance change
     const original = await prisma.transaction.findUnique({ where: { id } })
@@ -27,32 +27,69 @@ export async function PUT(
 
     const newAmount = parseFloat(amount)
 
-    // Update in a transaction: reverse old balance change, apply new
-    const [transaction] = await prisma.$transaction([
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dbOperations: any[] = [
       prisma.transaction.update({
         where: { id, userId: user.id },
-        data: { type, title, amount: newAmount, date: new Date(date), accountId, categoryId, note, receipt },
-        include: { account: true, category: true },
-      }),
-      // Reverse original
-      prisma.account.update({
-        where: { id: original.accountId },
-        data: {
-          balance: {
-            [original.type === 'INCOME' ? 'decrement' : 'increment']: original.amount,
-          },
+        data: { 
+          type, title, amount: newAmount, date: new Date(date), 
+          accountId, toAccountId, categoryId: type === 'TRANSFER' ? null : categoryId, note, receipt 
         },
-      }),
-      // Apply new
-      prisma.account.update({
-        where: { id: accountId },
-        data: {
-          balance: {
-            [type === 'INCOME' ? 'increment' : 'decrement']: newAmount,
+        include: { account: true, toAccount: true, category: true },
+      })
+    ]
+
+    // Reverse original
+    if (original.type === 'TRANSFER' && original.toAccountId) {
+      dbOperations.push(
+        prisma.account.update({
+          where: { id: original.accountId },
+          data: { balance: { increment: original.amount } },
+        }),
+        prisma.account.update({
+          where: { id: original.toAccountId },
+          data: { balance: { decrement: original.amount } },
+        })
+      )
+    } else {
+      dbOperations.push(
+        prisma.account.update({
+          where: { id: original.accountId },
+          data: {
+            balance: {
+              [original.type === 'INCOME' ? 'decrement' : 'increment']: original.amount,
+            },
           },
-        },
-      }),
-    ])
+        })
+      )
+    }
+
+    // Apply new
+    if (type === 'TRANSFER' && toAccountId) {
+      dbOperations.push(
+        prisma.account.update({
+          where: { id: accountId },
+          data: { balance: { decrement: newAmount } },
+        }),
+        prisma.account.update({
+          where: { id: toAccountId },
+          data: { balance: { increment: newAmount } },
+        })
+      )
+    } else {
+      dbOperations.push(
+        prisma.account.update({
+          where: { id: accountId },
+          data: {
+            balance: {
+              [type === 'INCOME' ? 'increment' : 'decrement']: newAmount,
+            },
+          },
+        })
+      )
+    }
+
+    const [transaction] = await prisma.$transaction(dbOperations)
 
     return NextResponse.json(transaction)
   } catch (error) {
@@ -80,18 +117,37 @@ export async function DELETE(
       return NextResponse.json({ error: 'Transaction not found' }, { status: 404 })
     }
 
-    await prisma.$transaction([
-      prisma.transaction.delete({ where: { id, userId: user.id } }),
-      // Reverse balance
-      prisma.account.update({
-        where: { id: transaction.accountId },
-        data: {
-          balance: {
-            [transaction.type === 'INCOME' ? 'decrement' : 'increment']: transaction.amount,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dbOperations: any[] = [
+      prisma.transaction.delete({ where: { id, userId: user.id } })
+    ]
+
+    // Reverse balance
+    if (transaction.type === 'TRANSFER' && transaction.toAccountId) {
+      dbOperations.push(
+        prisma.account.update({
+          where: { id: transaction.accountId },
+          data: { balance: { increment: transaction.amount } },
+        }),
+        prisma.account.update({
+          where: { id: transaction.toAccountId },
+          data: { balance: { decrement: transaction.amount } },
+        })
+      )
+    } else {
+      dbOperations.push(
+        prisma.account.update({
+          where: { id: transaction.accountId },
+          data: {
+            balance: {
+              [transaction.type === 'INCOME' ? 'decrement' : 'increment']: transaction.amount,
+            },
           },
-        },
-      }),
-    ])
+        })
+      )
+    }
+
+    await prisma.$transaction(dbOperations)
 
     return NextResponse.json({ success: true })
   } catch (error) {

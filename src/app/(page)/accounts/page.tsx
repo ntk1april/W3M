@@ -2,8 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Pencil, Trash2, Wallet, Loader2, X } from 'lucide-react'
-import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount } from '@/hooks/useAccounts'
+import { Plus, Pencil, Trash2, Wallet, Loader2, X, GripVertical } from 'lucide-react'
+import { useAccounts, useCreateAccount, useUpdateAccount, useDeleteAccount, useReorderAccounts } from '@/hooks/useAccounts'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { accountSchema, type AccountInput } from '@/lib/validations'
@@ -75,17 +92,17 @@ function AccountFormDialog({
   if (!open || !mounted) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-md bg-card rounded-2xl shadow-2xl border border-border animate-fade-in">
-        <div className="flex items-center justify-between p-5 border-b border-border">
+      <div className="relative z-10 w-full max-w-md bg-card rounded-2xl shadow-2xl border border-border animate-fade-in max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between p-5 border-b border-border shrink-0">
           <h2 className="font-bold text-lg">{editAccount ? 'Edit Account' : 'Add Account'}</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-5 space-y-5 overflow-y-auto">
           {/* Account Type */}
           <div>
             <label className="block text-sm font-medium mb-2">Account Type</label>
@@ -199,6 +216,75 @@ function AccountFormDialog({
   )
 }
 
+function SortableAccountCard({ account, onEdit, onDelete }: { account: Account, onEdit: () => void, onDelete: () => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: account.id })
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "bg-card rounded-2xl border border-border p-5 relative overflow-hidden group",
+        isDragging ? "shadow-2xl ring-2 ring-primary" : "card-hover"
+      )}
+    >
+      <div
+        className="absolute inset-0 opacity-5 transition-opacity group-hover:opacity-10"
+        style={{ background: account.color }}
+      />
+      <div className="relative flex flex-col h-full">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab hover:bg-muted p-1 -ml-2 rounded text-muted-foreground hover:text-foreground touch-none"
+            >
+              <GripVertical className="w-5 h-5" />
+            </div>
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+              style={{ background: `${account.color}22` }}
+            >
+              {account.type === 'BANK' ? '🏦' : account.type === 'WALLET' ? '👛' : '💵'}
+            </div>
+            <div>
+              <p className="font-bold">{account.name}</p>
+              <span className="text-xs text-muted-foreground">{account.type}</span>
+            </div>
+          </div>
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={onEdit}
+              className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center"
+            >
+              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <button
+              onClick={onDelete}
+              className="w-8 h-8 rounded-lg hover:bg-destructive/10 flex items-center justify-center"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-destructive" />
+            </button>
+          </div>
+        </div>
+        <div className="h-1 rounded-full mb-4" style={{ background: account.color }} />
+        <div className="mt-auto">
+          <p className="text-xs text-muted-foreground mb-1">Balance</p>
+          <p className="text-2xl font-bold">{formatCurrency(account.balance)}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AccountsPage() {
   const { data: accounts = [], isLoading } = useAccounts()
   const deleteAccount = useDeleteAccount()
@@ -206,6 +292,24 @@ export default function AccountsPage() {
   const [editingAccount, setEditingAccount] = useState<Account | undefined>()
 
   const totalBalance = accounts.reduce((sum: number, acc: Account) => sum + acc.balance, 0)
+
+  const reorderAccounts = useReorderAccounts()
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (over && active.id !== over.id) {
+      const oldIndex = accounts.findIndex((a: Account) => a.id === active.id)
+      const newIndex = accounts.findIndex((a: Account) => a.id === over.id)
+      
+      const newOrderIds = arrayMove(accounts, oldIndex, newIndex).map((a: Account) => a.id)
+      reorderAccounts.mutate(newOrderIds)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -250,79 +354,36 @@ export default function AccountsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {accounts.map((account: Account) => (
-            <div
-              key={account.id}
-              className="bg-card rounded-2xl border border-border p-5 card-hover relative overflow-hidden group"
-            >
-              {/* Background color */}
-              <div
-                className="absolute inset-0 opacity-5 transition-opacity group-hover:opacity-10"
-                style={{ background: account.color }}
-              />
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={accounts.map((a: Account) => a.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {accounts.map((account: Account) => (
+                <SortableAccountCard 
+                  key={account.id} 
+                  account={account} 
+                  onEdit={() => { setEditingAccount(account); setDialogOpen(true) }}
+                  onDelete={() => {
+                    if (confirm('Delete this account? All transactions will also be deleted.')) {
+                      deleteAccount.mutate(account.id)
+                    }
+                  }}
+                />
+              ))}
 
-              <div className="relative">
-                {/* Account header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-                      style={{ background: `${account.color}22` }}
-                    >
-                      {account.type === 'BANK' ? '🏦' : account.type === 'WALLET' ? '👛' : '💵'}
-                    </div>
-                    <div>
-                      <p className="font-bold">{account.name}</p>
-                      <span className="text-xs text-muted-foreground">{account.type}</span>
-                    </div>
-                  </div>
-                  {/* Actions */}
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => { setEditingAccount(account); setDialogOpen(true) }}
-                      className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center"
-                    >
-                      <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm('Delete this account? All transactions will also be deleted.')) {
-                          deleteAccount.mutate(account.id)
-                        }
-                      }}
-                      className="w-8 h-8 rounded-lg hover:bg-destructive/10 flex items-center justify-center"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                    </button>
-                  </div>
+              <button
+                onClick={() => { setEditingAccount(undefined); setDialogOpen(true) }}
+                className="bg-card rounded-2xl border-2 border-dashed border-border p-5 flex flex-col items-center
+                  justify-center gap-3 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer text-muted-foreground
+                  hover:text-primary min-h-[160px]"
+              >
+                <div className="w-12 h-12 rounded-xl border-2 border-dashed border-current flex items-center justify-center">
+                  <Plus className="w-6 h-6" />
                 </div>
-
-                {/* Color indicator */}
-                <div className="h-1 rounded-full mb-4" style={{ background: account.color }} />
-
-                {/* Balance */}
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Balance</p>
-                  <p className="text-2xl font-bold">{formatCurrency(account.balance)}</p>
-                </div>
-              </div>
+                <span className="text-sm font-medium">Add Account</span>
+              </button>
             </div>
-          ))}
-
-          {/* Add Account Card */}
-          <button
-            onClick={() => { setEditingAccount(undefined); setDialogOpen(true) }}
-            className="bg-card rounded-2xl border-2 border-dashed border-border p-5 flex flex-col items-center
-              justify-center gap-3 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer text-muted-foreground
-              hover:text-primary min-h-[160px]"
-          >
-            <div className="w-12 h-12 rounded-xl border-2 border-dashed border-current flex items-center justify-center">
-              <Plus className="w-6 h-6" />
-            </div>
-            <span className="text-sm font-medium">Add Account</span>
-          </button>
-        </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       {/* Form Dialog */}
