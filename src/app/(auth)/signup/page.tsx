@@ -1,0 +1,264 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
+import { Eye, EyeOff, Loader2, Wallet, ArrowRight, UserPlus } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { signupSchema, type SignupInput } from '@/lib/validations'
+import { cn } from '@/lib/utils'
+
+export default function SignupPage() {
+  const router = useRouter()
+  const supabase = createClient()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignupInput>({
+    resolver: zodResolver(signupSchema),
+  })
+
+  const onSubmit = async (data: SignupInput) => {
+    const { error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          display_name: data.displayName,
+        },
+      },
+    })
+
+    if (error) {
+      toast.error(error.message)
+      return
+    }
+
+    toast.success('Account created! Please check your email to verify.')
+    router.push('/login')
+  }
+
+  const handleGoogleSignup = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+
+    if (error) {
+      toast.error(error.message)
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Left Panel - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center"
+        style={{ background: 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 40%, #7C3AED 100%)' }}>
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="absolute rounded-full opacity-10"
+              style={{
+                width: `${100 + i * 80}px`,
+                height: `${100 + i * 80}px`,
+                background: 'white',
+                bottom: `${5 + i * 15}%`,
+                right: `${-10 + i * 10}%`,
+              }}
+            />
+          ))}
+        </div>
+
+        <div className="relative z-10 text-center text-white px-12">
+          <div className="flex justify-center mb-8">
+            <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center
+              border border-white/30 shadow-2xl">
+              <Wallet className="w-10 h-10 text-white" />
+            </div>
+          </div>
+          <h1 className="text-5xl font-bold mb-4">W3M</h1>
+          <p className="text-xl font-medium text-blue-100 mb-2">Where Ma Money Missing</p>
+          <p className="text-blue-200 text-sm max-w-xs mx-auto leading-relaxed">
+            Join thousands of users who track their finances smarter with W3M.
+          </p>
+
+          <div className="mt-10 space-y-3">
+            {[
+              '✓ Track all your accounts in one place',
+              '✓ Beautiful charts and insights',
+              '✓ Spending calendar view',
+              '✓ Income vs expense reports',
+            ].map((f) => (
+              <div key={f} className="text-sm text-blue-100 text-left">{f}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-background overflow-y-auto">
+        <div className="w-full max-w-md py-8">
+          <div className="flex items-center gap-3 mb-8 lg:hidden">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}>
+              <Wallet className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">W3M</h1>
+              <p className="text-xs text-muted-foreground">Where Ma Money Missing</p>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold">Create account</h2>
+            <p className="text-muted-foreground mt-2">Start tracking your finances today</p>
+          </div>
+
+          <button
+            onClick={handleGoogleSignup}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-border
+              bg-card hover:bg-muted transition-all duration-200 font-medium text-foreground mb-6 shadow-sm"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-3 bg-background text-muted-foreground">or sign up with email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Full Name</label>
+              <input
+                {...register('displayName')}
+                type="text"
+                placeholder="Your name"
+                className={cn(
+                  'w-full px-4 py-3 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground',
+                  'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all',
+                  errors.displayName && 'border-destructive'
+                )}
+              />
+              {errors.displayName && (
+                <p className="text-destructive text-xs mt-1.5">{errors.displayName.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Email</label>
+              <input
+                {...register('email')}
+                type="email"
+                placeholder="you@example.com"
+                className={cn(
+                  'w-full px-4 py-3 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground',
+                  'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all',
+                  errors.email && 'border-destructive'
+                )}
+              />
+              {errors.email && (
+                <p className="text-destructive text-xs mt-1.5">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Password</label>
+              <div className="relative">
+                <input
+                  {...register('password')}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className={cn(
+                    'w-full px-4 py-3 pr-12 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground',
+                    'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all',
+                    errors.password && 'border-destructive'
+                  )}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-destructive text-xs mt-1.5">{errors.password.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Confirm Password</label>
+              <div className="relative">
+                <input
+                  {...register('confirmPassword')}
+                  type={showConfirm ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className={cn(
+                    'w-full px-4 py-3 pr-12 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground',
+                    'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all',
+                    errors.confirmPassword && 'border-destructive'
+                  )}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                >
+                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-destructive text-xs mt-1.5">{errors.confirmPassword.message}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-3 px-6 rounded-xl font-semibold text-white flex items-center justify-center gap-2
+                transition-all duration-200 disabled:opacity-60 shadow-lg mt-2"
+              style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4" />
+                  Create Account
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            Already have an account?{' '}
+            <Link href="/login" className="text-primary font-medium hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
