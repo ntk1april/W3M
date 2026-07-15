@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Wallet,
@@ -10,35 +10,35 @@ import {
   Settings,
   LogOut,
   TrendingUp,
-} from 'lucide-react'
-import { cn, getInitials } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import type { User } from '@supabase/supabase-js'
+} from "lucide-react";
+import { cn, getInitials } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import type { User } from "@supabase/supabase-js";
 
 const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/accounts', icon: Wallet, label: 'Accounts' },
-  { href: '/transactions', icon: ArrowLeftRight, label: 'Transactions' },
-  { href: '/search', icon: Search, label: 'Search' },
-]
+  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/accounts", icon: Wallet, label: "Accounts" },
+  { href: "/transactions", icon: ArrowLeftRight, label: "Transactions" },
+  { href: "/search", icon: Search, label: "Search" },
+];
 
 interface SidebarProps {
-  user: User
+  user: User;
 }
 
 export function Sidebar({ user }: SidebarProps) {
-  const pathname = usePathname()
-  const router = useRouter()
-  const supabase = createClient()
+  const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    toast.success('Logged out successfully')
-    router.push('/login')
-    router.refresh()
-  }
+    await supabase.auth.signOut();
+    toast.success("Logged out successfully");
+    router.push("/login");
+    router.refresh();
+  };
 
   return (
     <>
@@ -47,13 +47,20 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}>
-              <TrendingUp className="w-4 h-4 text-white" />
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+              }}
+            >
+              {/* <TrendingUp className="w-4 h-4 text-white" /> */}
+              💸
             </div>
             <div>
               <span className="font-bold text-lg leading-none">W3M</span>
-              <p className="text-xs text-muted-foreground leading-none mt-0.5">Finance Tracker</p>
+              <p className="text-xs text-muted-foreground leading-none mt-0.5">
+                Finance Tracker
+              </p>
             </div>
           </div>
         </div>
@@ -64,17 +71,18 @@ export function Sidebar({ user }: SidebarProps) {
             Menu
           </p>
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn('sidebar-link', isActive && 'active')}
+                className={cn("sidebar-link", isActive && "active")}
               >
                 <item.icon className="w-4.5 h-4.5 shrink-0" size={18} />
                 {item.label}
               </Link>
-            )
+            );
           })}
 
           <div className="pt-4 mt-4 border-t border-border">
@@ -83,7 +91,10 @@ export function Sidebar({ user }: SidebarProps) {
             </p>
             <Link
               href="/settings"
-              className={cn('sidebar-link', pathname === '/settings' && 'active')}
+              className={cn(
+                "sidebar-link",
+                pathname === "/settings" && "active",
+              )}
             >
               <Settings size={18} />
               Settings
@@ -101,19 +112,27 @@ export function Sidebar({ user }: SidebarProps) {
         {/* User Profile */}
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted transition-colors cursor-pointer">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}>
-              {getInitials(user.user_metadata?.display_name || user.email || 'U')}
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+              }}
+            >
+              {getInitials(
+                user.user_metadata?.display_name || user.email || "U",
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">
-                {user.user_metadata?.display_name || 'User'}
+                {user.user_metadata?.display_name || "User"}
               </p>
-              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {user.email}
+              </p>
             </div>
           </div>
         </div>
       </aside>
     </>
-  )
+  );
 }

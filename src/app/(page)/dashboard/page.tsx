@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Wallet,
   ArrowUpRight,
+  Plus,
   Loader2,
   Edit2,
   Trash2,
@@ -53,6 +54,7 @@ export default function DashboardPage() {
   const { data, isLoading } = useDashboard();
   const deleteTransaction = useDeleteTransaction();
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
 
@@ -232,9 +234,15 @@ export default function DashboardPage() {
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
                 <p className="text-2xl mb-2">💸</p>
                 <p className="font-medium">No transactions yet</p>
-                <p className="text-sm">
+                <button
+                  onClick={() => setIsAddDialogOpen(true)}
+                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                >
+                  Add your first transaction <Plus className="w-3 h-3" />
+                </button>
+                {/* <p className="text-sm">
                   Add your first transaction using the + button
-                </p>
+                </p> */}
               </div>
             ) : (
               <div className="divide-y divide-border overflow-y-auto flex-1 min-h-0">
@@ -343,6 +351,16 @@ export default function DashboardPage() {
             )}
           </div>
         </section>
+
+        {editingTransaction && (
+          <EditTransactionDialog
+            open={!!editingTransaction}
+            onOpenChange={(open) => {
+              if (!open) setEditingTransaction(null);
+            }}
+            transactionToEdit={editingTransaction}
+          />
+        )}
       </div>
 
       {/* Charts Section */}
@@ -653,6 +671,15 @@ export default function DashboardPage() {
           </div>
         </section>
       </section>
+
+      {isAddDialogOpen && (
+        <AddTransactionDialog
+          open={!!isAddDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) setIsAddDialogOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

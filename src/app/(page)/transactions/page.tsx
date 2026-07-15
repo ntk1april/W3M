@@ -14,7 +14,6 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 import type { Transaction, Account } from "@/types";
-import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { EditTransactionDialog } from "@/components/transactions/edit-transaction-dialog";
 
 const periodOptions = [

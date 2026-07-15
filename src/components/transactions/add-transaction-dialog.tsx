@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { createPortal } from "react-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, ChevronLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { transactionSchema, type TransactionInput } from "@/lib/validations";
@@ -23,6 +24,7 @@ export function AddTransactionDialog({
   open,
   onOpenChange,
 }: AddTransactionDialogProps) {
+  const [mouse, setMouse] = useState(false);
   const [step, setStep] = useState<Step>(1);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const { data: accounts = [] } = useAccounts();
@@ -81,9 +83,13 @@ export function AddTransactionDialog({
     handleClose();
   };
 
-  if (!open) return null;
+  useEffect(() => {
+    setMouse(true);
+  }, []);
 
-  return (
+  if (!open || !mouse) return null;
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       {/* Overlay */}
       <div
@@ -108,9 +114,7 @@ export function AddTransactionDialog({
               </button>
             )}
             <div>
-              <h2 className="font-bold text-lg">
-                Add Transaction
-              </h2>
+              <h2 className="font-bold text-lg">Add Transaction</h2>
               <p className="text-xs text-muted-foreground">Step {step} of 2</p>
             </div>
           </div>
@@ -288,7 +292,9 @@ export function AddTransactionDialog({
                         >
                           {field.value ? (
                             (() => {
-                              const selected = filteredCategories.find((c: Category) => c.id === field.value);
+                              const selected = filteredCategories.find(
+                                (c: Category) => c.id === field.value,
+                              );
                               return (
                                 <span className="flex items-center gap-2">
                                   <span>{selected?.icon}</span>
@@ -297,11 +303,15 @@ export function AddTransactionDialog({
                               );
                             })()
                           ) : (
-                            <span className="text-muted-foreground">Select category...</span>
+                            <span className="text-muted-foreground">
+                              Select category...
+                            </span>
                           )}
-                          <span className="text-muted-foreground text-xs">▼</span>
+                          <span className="text-muted-foreground text-xs">
+                            ▼
+                          </span>
                         </button>
-                        
+
                         {isCategoryOpen && (
                           <div className="absolute z-50 mt-2 w-full bg-card border border-border rounded-xl shadow-xl max-h-72 overflow-y-auto p-3 grid grid-cols-3 gap-2">
                             {filteredCategories.map((c: Category) => (
@@ -316,11 +326,13 @@ export function AddTransactionDialog({
                                   "p-3 rounded-xl border flex flex-col items-center gap-2 transition-all duration-200",
                                   field.value === c.id
                                     ? "border-primary bg-primary/10"
-                                    : "border-border hover:border-muted-foreground/30 hover:bg-muted"
+                                    : "border-border hover:border-muted-foreground/30 hover:bg-muted",
                                 )}
                               >
                                 <span className="text-2xl">{c.icon}</span>
-                                <span className="text-xs font-medium text-center leading-tight">{c.name}</span>
+                                <span className="text-xs font-medium text-center leading-tight">
+                                  {c.name}
+                                </span>
                               </button>
                             ))}
                           </div>
@@ -546,6 +558,7 @@ export function AddTransactionDialog({
           )}
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
