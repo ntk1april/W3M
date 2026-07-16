@@ -38,9 +38,20 @@ export function Header({ user }: HeaderProps) {
   const name = user.user_metadata?.display_name?.split(" ")[0] || "there";
 
   return (
-    <header className="h-16 border-b border-border bg-card/80 backdrop-blur-md flex items-center px-6 gap-4 shrink-0 sticky top-0 z-30">
+    <header className="h-14 sm:h-16 border-b border-border bg-card/80 backdrop-blur-md flex items-center px-4 sm:px-6 gap-4 shrink-0 sticky top-0 z-30">
+      {/* Mobile brand */}
+      <div className="lg:hidden flex items-center gap-2 shrink-0">
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
+          style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+        >
+          💸
+        </div>
+        <span className="font-bold text-base leading-none">W3M</span>
+      </div>
+
       {/* Left - Title/Greeting */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 hidden lg:block">
         <h1 className="text-lg font-semibold text-foreground truncate">
           {title}
         </h1>

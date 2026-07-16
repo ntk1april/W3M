@@ -128,24 +128,24 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-card rounded-2xl border border-border p-4">
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-card rounded-2xl border border-border p-3 sm:p-4">
           <p className="text-xs text-muted-foreground mb-1">Total Income</p>
-          <p className="text-xl font-bold text-green-600 dark:text-green-400">
+          <p className="text-base sm:text-xl font-bold text-green-600 dark:text-green-400 truncate">
             +{formatCurrency(totalIncome)}
           </p>
         </div>
-        <div className="bg-card rounded-2xl border border-border p-4">
+        <div className="bg-card rounded-2xl border border-border p-3 sm:p-4">
           <p className="text-xs text-muted-foreground mb-1">Total Expense</p>
-          <p className="text-xl font-bold text-red-600 dark:text-red-400">
+          <p className="text-base sm:text-xl font-bold text-red-600 dark:text-red-400 truncate">
             -{formatCurrency(totalExpense)}
           </p>
         </div>
-        <div className="bg-card rounded-2xl border border-border p-4">
+        <div className="bg-card rounded-2xl border border-border p-3 sm:p-4">
           <p className="text-xs text-muted-foreground mb-1">Net Balance</p>
           <p
             className={cn(
-              "text-xl font-bold",
+              "text-base sm:text-xl font-bold truncate",
               totalIncome - totalExpense >= 0
                 ? "text-green-600 dark:text-green-400"
                 : "text-red-600 dark:text-red-400",
@@ -244,8 +244,8 @@ export default function TransactionsPage() {
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {/* Table Header */}
-            <div className="grid grid-cols-12 gap-3 px-4 py-3 bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            {/* Table Header — desktop only */}
+            <div className="hidden sm:grid grid-cols-12 gap-3 px-4 py-3 bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <div className="col-span-1">Cat.</div>
               <div className="col-span-4">Name</div>
               <div className="col-span-2">Account</div>
@@ -255,111 +255,121 @@ export default function TransactionsPage() {
             </div>
 
             {transactions.map((transaction: Transaction) => (
-              <div
-                key={transaction.id}
-                className="grid grid-cols-12 gap-3 px-4 py-3.5 items-center hover:bg-muted/30 transition-colors group"
-              >
-                {/* Category Icon */}
-                <div className="col-span-1">
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-base">
-                    {transaction.type === "TRANSFER"
-                      ? "🔄"
-                      : transaction.category?.icon || "💸"}
+              <div key={transaction.id}>
+                {/* ── Mobile card ──────────────────────────────────── */}
+                <div className="sm:hidden flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors group">
+                  <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-base shrink-0">
+                    {transaction.type === "TRANSFER" ? "🔄" : transaction.category?.icon || "💸"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{transaction.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {transaction.type === "TRANSFER"
+                        ? `${transaction.account?.name} → ${transaction.toAccount?.name}`
+                        : transaction.category?.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{formatDateTime(transaction.date)}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={cn(
+                      "font-bold text-sm",
+                      transaction.type === "INCOME" ? "text-green-600 dark:text-green-400"
+                        : transaction.type === "TRANSFER" ? "text-blue-600 dark:text-blue-400"
+                        : "text-red-600 dark:text-red-400",
+                    )}>
+                      {transaction.type === "INCOME" ? "+" : transaction.type === "TRANSFER" ? "" : "-"}
+                      {formatCurrency(transaction.amount)}
+                    </p>
+                    <div className="flex gap-1 justify-end mt-1">
+                      <button
+                        onClick={() => setEditingTransaction(transaction)}
+                        className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-all"
+                      >
+                        <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                      </button>
+                      <button
+                        onClick={() => { if (confirm("Delete this transaction?")) deleteTransaction.mutate(transaction.id); }}
+                        className="w-7 h-7 rounded-lg hover:bg-destructive/10 flex items-center justify-center transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Name */}
-                <div className="col-span-4 min-w-0">
-                  <p className="font-medium text-sm truncate">
-                    {transaction.title}
-                  </p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span
-                      className={cn(
+                {/* ── Desktop table row ─────────────────────────── */}
+                <div className="hidden sm:grid grid-cols-12 gap-3 px-4 py-3.5 items-center hover:bg-muted/30 transition-colors group">
+                  {/* Category Icon */}
+                  <div className="col-span-1">
+                    <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-base">
+                      {transaction.type === "TRANSFER" ? "🔄" : transaction.category?.icon || "💸"}
+                    </div>
+                  </div>
+
+                  {/* Name */}
+                  <div className="col-span-4 min-w-0">
+                    <p className="font-medium text-sm truncate">{transaction.title}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className={cn(
                         "text-xs px-1.5 py-0.5 rounded-full font-medium",
-                        transaction.type === "INCOME"
-                          ? "badge-income"
+                        transaction.type === "INCOME" ? "badge-income"
                           : transaction.type === "TRANSFER"
                             ? "text-blue-600 dark:text-blue-400 bg-blue-900/10 dark:bg-blue-500/10 border border-blue-600 dark:border-blue-400"
-                            : "badge-expense",
+                          : "badge-expense",
+                      )}>
+                        {transaction.type}
+                      </span>
+                      {transaction.type === "TRANSFER" ? (
+                        <span className="text-xs text-muted-foreground">
+                          {transaction.account?.name} → {transaction.toAccount?.name}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">{transaction.category?.name}</span>
                       )}
-                    >
-                      {transaction.type}
-                    </span>
-                    {transaction.type === "TRANSFER" ? (
-                      <span className="text-xs text-muted-foreground">
-                        {transaction.account?.name} →{" "}
-                        {transaction.toAccount?.name}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">
-                        {transaction.category?.name}
-                      </span>
-                    )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Account */}
-                <div className="col-span-2">
-                  <div className="flex items-center gap-1.5">
-                    <div
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{
-                        background: transaction.account?.color || "#6B7280",
-                      }}
-                    />
-                    <span className="text-sm truncate">
-                      {transaction.account?.name}
-                    </span>
+                  {/* Account */}
+                  <div className="col-span-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ background: transaction.account?.color || "#6B7280" }} />
+                      <span className="text-sm truncate">{transaction.account?.name}</span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Date */}
-                <div className="col-span-2">
-                  <p className="text-sm text-muted-foreground">
-                    {formatDateTime(transaction.date)}
-                  </p>
-                </div>
+                  {/* Date */}
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">{formatDateTime(transaction.date)}</p>
+                  </div>
 
-                {/* Amount */}
-                <div className="col-span-2 text-right">
-                  <p
-                    className={cn(
+                  {/* Amount */}
+                  <div className="col-span-2 text-right">
+                    <p className={cn(
                       "font-bold text-sm",
-                      transaction.type === "INCOME"
-                        ? "text-green-600 dark:text-green-400"
-                        : transaction.type === "TRANSFER"
-                          ? "text-blue-600 dark:text-blue-400"
-                          : "text-red-600 dark:text-red-400",
-                    )}
-                  >
-                    {transaction.type === "INCOME"
-                      ? "+"
-                      : transaction.type === "TRANSFER"
-                        ? ""
-                        : "-"}
-                    {formatCurrency(transaction.amount)}
-                  </p>
-                </div>
+                      transaction.type === "INCOME" ? "text-green-600 dark:text-green-400"
+                        : transaction.type === "TRANSFER" ? "text-blue-600 dark:text-blue-400"
+                        : "text-red-600 dark:text-red-400",
+                    )}>
+                      {transaction.type === "INCOME" ? "+" : transaction.type === "TRANSFER" ? "" : "-"}
+                      {formatCurrency(transaction.amount)}
+                    </p>
+                  </div>
 
-                {/* Actions */}
-                <div className="col-span-1 flex justify-end gap-2">
-                  <button
-                    onClick={() => setEditingTransaction(transaction)}
-                    className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                  >
-                    <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm("Delete this transaction?")) {
-                        deleteTransaction.mutate(transaction.id);
-                      }
-                    }}
-                    className="w-7 h-7 rounded-lg hover:bg-destructive/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                  </button>
+                  {/* Actions */}
+                  <div className="col-span-1 flex justify-end gap-2">
+                    <button
+                      onClick={() => setEditingTransaction(transaction)}
+                      className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={() => { if (confirm("Delete this transaction?")) deleteTransaction.mutate(transaction.id); }}
+                      className="w-7 h-7 rounded-lg hover:bg-destructive/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

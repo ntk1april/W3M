@@ -38,6 +38,7 @@ import Link from "next/link";
 import { useTransactions, useDeleteTransaction } from "@/hooks/useTransactions";
 import { AddTransactionDialog } from "@/components/transactions/add-transaction-dialog";
 import { EditTransactionDialog } from "@/components/transactions/edit-transaction-dialog";
+import { TransactionDialog } from "@/components/transactions/transaction-dialog";
 
 const COLORS = [
   "#2563EB",
@@ -57,6 +58,7 @@ export default function DashboardPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
 
   const { data: calendarTxData } = useTransactions({
     startDate: startOfMonth(calendarDate).toISOString(),
@@ -98,6 +100,7 @@ export default function DashboardPage() {
     {};
 
   calendarTransactions.forEach((t: Transaction) => {
+    if (t.type === "TRANSFER") return; // transfers don't count as income/expense
     const key = getDayKey(t.date);
     if (!calendarDataByDay[key]) {
       calendarDataByDay[key] = { income: 0, expense: 0 };
@@ -474,10 +477,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Spending Calendar */}
-      <section className="flex">
-        <div>
-          <div className="flex items-center justify-between mb-4 w-220">
+      {/* Spending Calendar + Income & Expense */}
+      <section className="flex flex-col xl:flex-row gap-6">
+        {/* Calendar */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Spending Calendar</h2>
             <div className="flex items-center gap-2 border border-border rounded-xl">
               <button
@@ -506,23 +510,21 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-card rounded-2xl border border-border p-3 w-220">
-            <div className="grid grid-cols-7 gap-1 mb-2">
+          <div className="bg-card rounded-2xl border border-border p-2 sm:p-3">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1 sm:mb-2">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
                 <div
                   key={d}
-                  className="text-center text-xs font-medium text-muted-foreground py-1 w-25"
+                  className="text-center text-[10px] sm:text-xs font-medium text-muted-foreground py-1"
                 >
                   {d}
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-1">
-              {/* Empty cells for first week */}
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
               {Array.from({ length: firstDayOfMonth }).map((_, i) => (
                 <div key={`empty-${i}`} />
               ))}
-              {/* Day cells */}
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const day = i + 1;
                 const dateKey = format(
@@ -550,28 +552,36 @@ export default function DashboardPage() {
                   <div
                     key={day}
                     className={cn(
-                      "aspect-square rounded-2xl flex flex-col items-center p-1 mb-0.5 cursor-pointer transition-all w-25 h-25",
+                      "aspect-square rounded-lg sm:rounded-2xl flex flex-col items-center p-0.5 sm:p-1 cursor-pointer transition-all",
                       isToday
                         ? "ring-2 ring-primary ring-offset-1 ring-offset-background"
                         : "hover:bg-muted",
                       hasActivity && !isToday && "bg-muted/30",
                     )}
+                    onClick={() => {
+                      setSelectedCalendarDate(
+                        new Date(
+                          calendarDate.getFullYear(),
+                          calendarDate.getMonth(),
+                          day,
+                        )
+                      );
+                    }}
                   >
                     <span
                       className={cn(
-                        "text-right w-full mt-1 pr-2",
+                        "text-right w-full pr-0.5 sm:pr-2 mt-0.5",
                         isToday
-                          ? "text-primary font-bold text-[20px]"
-                          : "font-medium text-[15px]",
+                          ? "text-primary font-bold text-[10px] sm:text-[18px]"
+                          : "font-medium text-[9px] sm:text-[13px]",
                       )}
                     >
                       {day}
                     </span>
-
-                    <div className="w-full flex flex-col justify-center items-center gap-1 mt-auto mb-auto">
+                    <div className="w-full flex flex-col justify-center items-center gap-0.5 mt-auto mb-auto">
                       {data.income > 0 && (
                         <span
-                          className="text-[18px] font-bold text-green-600 dark:text-green-400 truncate w-full text-center leading-none"
+                          className="text-[7px] sm:text-[14px] font-bold text-green-600 dark:text-green-400 truncate w-full text-center leading-none"
                           title={formatCurrency(data.income)}
                         >
                           +
@@ -582,7 +592,7 @@ export default function DashboardPage() {
                       )}
                       {data.expense > 0 && (
                         <span
-                          className="text-[18px] font-bold text-red-600 dark:text-red-400 truncate w-full text-center leading-none"
+                          className="text-[7px] sm:text-[14px] font-bold text-red-600 dark:text-red-400 truncate w-full text-center leading-none"
                           title={formatCurrency(data.expense)}
                         >
                           -
@@ -599,77 +609,66 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Summary Cards */}
-        <section className="ml-2">
-          <div>
-            <h2 className="text-xl font-bold pb-5.5 text-center">
-              Income & Expense
-            </h2>
-            <div className="grid grid-col gap-4 w-81.5">
-              {[
-                // {
-                //   label: "Today",
-                //   income: todayIncome,
-                //   expense: todayExpense,
-                //   icon: "📅",
-                // },
-                {
-                  label: "This Week",
-                  income: weekIncome,
-                  expense: weekExpense,
-                  icon: "🗓️",
-                },
-                {
-                  label: "This Month",
-                  income: monthIncome,
-                  expense: monthExpense,
-                  icon: "📆",
-                },
-                {
-                  label: "This Year",
-                  income: yearIncome,
-                  expense: yearExpense,
-                  icon: "📊",
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="bg-card rounded-2xl border border-border p-4 card-hover block h-45.5"
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-xl">{item.icon}</span>
-                    <span className="text-l font-semibold">{item.label}</span>
+        {/* Income & Expense Summary Cards */}
+        <div className="xl:w-80 shrink-0">
+          <h2 className="text-xl font-bold mb-4">Income &amp; Expense</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-3">
+            {[
+              {
+                label: "This Week",
+                income: weekIncome,
+                expense: weekExpense,
+                icon: "🗓️",
+              },
+              {
+                label: "This Month",
+                income: monthIncome,
+                expense: monthExpense,
+                icon: "📆",
+              },
+              {
+                label: "This Year",
+                income: yearIncome,
+                expense: yearExpense,
+                icon: "📊",
+              },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="bg-card rounded-2xl border border-border p-4 card-hover"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">{item.icon}</span>
+                  <span className="font-semibold text-sm">{item.label}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="border-r border-border pr-3">
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3 text-green-500" /> Income
+                    </p>
+                    <p
+                      className="font-bold text-green-600 dark:text-green-400 text-sm truncate"
+                      title={formatCurrency(item.income)}
+                    >
+                      {formatCurrency(item.income)}
+                    </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="border-r border-border pr-5">
-                      <p className="text-xl text-muted-foreground mb-1 flex items-center gap-1">
-                        <TrendingUp className="w-5 h-5 text-green-500" /> Income
-                      </p>
-                      <p
-                        className="font-bold text-green-600 dark:text-green-400 text-l truncate"
-                        title={formatCurrency(item.income)}
-                      >
-                        {formatCurrency(item.income)}
-                      </p>
-                    </div>
-                    <div className="pl-6">
-                      <p className="text-xl text-muted-foreground mb-1 flex items-center gap-1">
-                        <TrendingDown className="w-5 h-5 text-red-500" />{" "}
-                        Expense
-                      </p>
-                      <p
-                        className="font-bold text-red-600 dark:text-red-400 text-l truncate"
-                        title={formatCurrency(item.expense)}
-                      >
-                        {formatCurrency(item.expense)}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <TrendingDown className="w-3 h-3 text-red-500" /> Expense
+                    </p>
+                    <p
+                      className="font-bold text-red-600 dark:text-red-400 text-sm truncate"
+                      title={formatCurrency(item.expense)}
+                    >
+                      {formatCurrency(item.expense)}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
       </section>
 
       {isAddDialogOpen && (
@@ -678,6 +677,16 @@ export default function DashboardPage() {
           onOpenChange={(open) => {
             if (!open) setIsAddDialogOpen(false);
           }}
+        />
+      )}
+
+      {selectedCalendarDate && (
+        <TransactionDialog
+          open={!!selectedCalendarDate}
+          onOpenChange={(open) => {
+            if (!open) setSelectedCalendarDate(null);
+          }}
+          date={selectedCalendarDate}
         />
       )}
     </div>

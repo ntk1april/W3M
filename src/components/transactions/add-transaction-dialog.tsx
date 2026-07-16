@@ -155,7 +155,6 @@ export function AddTransactionDialog({
                   type="button"
                   onClick={() => {
                     setValue("type", "EXPENSE");
-                    setValue("categoryId", "");
                   }}
                   className={cn(
                     "p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-200 relative",
@@ -189,7 +188,6 @@ export function AddTransactionDialog({
                   type="button"
                   onClick={() => {
                     setValue("type", "INCOME");
-                    setValue("categoryId", "");
                   }}
                   className={cn(
                     "p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-200 relative",
@@ -223,7 +221,6 @@ export function AddTransactionDialog({
                   type="button"
                   onClick={() => {
                     setValue("type", "TRANSFER");
-                    setValue("categoryId", "");
                   }}
                   className={cn(
                     "p-4 sm:p-5 rounded-2xl border-2 flex flex-col items-center gap-3 transition-all duration-200 relative",
@@ -256,7 +253,14 @@ export function AddTransactionDialog({
 
               <button
                 type="button"
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  if (selectedType === "EXPENSE") {
+                    setValue("categoryId", "cmqz7sjhg0000kjlsz1clmbj4");
+                  } else if (selectedType === "INCOME") {
+                    setValue("categoryId", "cmqz7sjhh000dkjlssubo9juo");
+                  }
+                  setStep(2);
+                }}
                 className="w-full py-3 rounded-xl font-semibold text-white mt-2"
                 style={{
                   background: "linear-gradient(135deg, #2563EB, #7C3AED)",
@@ -383,7 +387,7 @@ export function AddTransactionDialog({
                 <input
                   {...register("title")}
                   type="text"
-                  placeholder="e.g. Lunch at MK Restaurant"
+                  placeholder="e.g. Lunch at KFC Restaurant"
                   className={cn(
                     "w-full px-4 py-3 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground",
                     "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all",

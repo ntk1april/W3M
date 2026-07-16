@@ -24,7 +24,13 @@ export async function GET(request: Request) {
 
     const where: Record<string, unknown> = { userId: user.id }
     if (type) where.type = type
-    if (accountId) where.accountId = accountId
+    if (accountId) {
+      // Show transfer if the selected account is either source OR destination
+      where.OR = [
+        { accountId },
+        { toAccountId: accountId },
+      ]
+    }
     if (categoryId) where.categoryId = categoryId
     if (search) where.title = { contains: search, mode: 'insensitive' }
     if (startDate || endDate) {
@@ -68,6 +74,26 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { type, title, amount, date, accountId, toAccountId, categoryId, note, receipt } = body
     const parsedAmount = parseFloat(amount)
+
+    // ── Balance check for TRANSFER ─────────────────────────────────
+    if (type === 'TRANSFER' && toAccountId) {
+      const sourceAccount = await prisma.account.findUnique({
+        where: { id: accountId, userId: user.id },
+        select: { balance: true, name: true },
+      })
+      if (!sourceAccount) {
+        return NextResponse.json({ error: 'Source account not found' }, { status: 404 })
+      }
+      if (sourceAccount.balance < parsedAmount) {
+        return NextResponse.json(
+          {
+            error: `Insufficient balance in "${sourceAccount.name}". Available: ${sourceAccount.balance.toFixed(2)}, Required: ${parsedAmount.toFixed(2)}`,
+          },
+          { status: 400 },
+        )
+      }
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dbOperations: any[] = [
       prisma.transaction.create({

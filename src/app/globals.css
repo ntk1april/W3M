@@ -133,19 +133,44 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideIn {
-  from { transform: translateX(-10px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes pulse-ring {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
-  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
 }
 
 .animate-fade-in {
@@ -168,8 +193,13 @@ body {
 
 /* Skeleton loading */
 @keyframes shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
 }
 
 .skeleton {
@@ -236,7 +266,8 @@ body {
 /* FAB button */
 .fab {
   position: fixed;
-  bottom: 28px;
+  bottom: 84px;
+  /* above mobile bottom nav */
   right: 28px;
   z-index: 50;
   width: 60px;
@@ -254,8 +285,15 @@ body {
   outline: none;
 }
 
+@media (min-width: 1024px) {
+  .fab {
+    bottom: 28px;
+    /* desktop — no bottom nav */
+  }
+}
+
 .fab:hover {
-  transform: scale(1.08) rotate(45deg);
+  transform: scale(1.08) rotate(90deg);
   box-shadow: 0 12px 35px rgba(37, 99, 235, 0.5);
 }
 

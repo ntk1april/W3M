@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Plus } from 'lucide-react'
-import { AddTransactionDialog } from './add-transaction-dialog'
+import { useState } from "react";
+import { Plus, ArrowLeftRight } from "lucide-react";
+import { AddTransactionDialog } from "./add-transaction-dialog";
 
 export function AddTransactionFab() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
     <>
@@ -15,9 +15,9 @@ export function AddTransactionFab() {
         title="Add Transaction"
         id="fab-add-transaction"
       >
-        <Plus className="w-6 h-6" />
+        <ArrowLeftRight className="w-6 h-6" />
       </button>
       <AddTransactionDialog open={open} onOpenChange={setOpen} />
     </>
-  )
+  );
 }

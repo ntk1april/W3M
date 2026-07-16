@@ -9,7 +9,6 @@ import {
   Search,
   Settings,
   LogOut,
-  TrendingUp,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -42,18 +41,15 @@ export function Sidebar({ user }: SidebarProps) {
 
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* ── Desktop Sidebar ───────────────────────────────────────── */}
       <aside className="hidden lg:flex flex-col w-[260px] border-r border-border bg-card h-full">
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
-              }}
+              style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
             >
-              {/* <TrendingUp className="w-4 h-4 text-white" /> */}
               💸
             </div>
             <div>
@@ -114,13 +110,9 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted transition-colors cursor-pointer">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
-              }}
+              style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
             >
-              {getInitials(
-                user.user_metadata?.display_name || user.email || "U",
-              )}
+              {getInitials(user.user_metadata?.display_name || user.email || "U")}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">
@@ -133,6 +125,44 @@ export function Sidebar({ user }: SidebarProps) {
           </div>
         </div>
       </aside>
+
+      {/* ── Mobile Bottom Nav ─────────────────────────────────────── */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border flex items-center justify-around px-2 pb-safe">
+        {navItems.map((item) => {
+          const isActive =
+            pathname === item.href || pathname.startsWith(item.href + "/");
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center gap-0.5 py-3 px-3 rounded-xl transition-colors min-w-0 flex-1",
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <item.icon size={22} />
+              <span className="text-[10px] font-medium truncate">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+        {/* Settings shortcut */}
+        <Link
+          href="/settings"
+          className={cn(
+            "flex flex-col items-center gap-0.5 py-3 px-3 rounded-xl transition-colors min-w-0 flex-1",
+            pathname === "/settings"
+              ? "text-primary"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <Settings size={22} />
+          <span className="text-[10px] font-medium">Settings</span>
+        </Link>
+      </nav>
     </>
   );
 }

@@ -43,7 +43,10 @@ export function useCreateTransaction() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
-      if (!res.ok) throw new Error('Failed to create transaction')
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body?.error || 'Failed to create transaction')
+      }
       return res.json()
     },
     onSuccess: () => {
@@ -52,7 +55,7 @@ export function useCreateTransaction() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Transaction added! 💸')
     },
-    onError: () => toast.error('Failed to add transaction'),
+    onError: (error: Error) => toast.error(error.message || 'Failed to add transaction'),
   })
 }
 
