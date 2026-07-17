@@ -22,6 +22,7 @@ const periodOptions = [
   { label: "This Week", value: "week" },
   { label: "This Month", value: "month" },
   { label: "This Year", value: "year" },
+  { label: "Custom Range", value: "custom" },
 ];
 
 function getDateRange(period: string): {
@@ -81,10 +82,18 @@ export default function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [accountFilter, setAccountFilter] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [customStartDate, setCustomStartDate] = useState("");
+  const [customEndDate, setCustomEndDate] = useState("");
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
 
-  const dateRange = getDateRange(period);
+  let dateRange = getDateRange(period);
+  if (period === "custom") {
+    dateRange = {
+      startDate: customStartDate ? new Date(`${customStartDate}T00:00:00`).toISOString() : undefined,
+      endDate: customEndDate ? new Date(`${customEndDate}T23:59:59`).toISOString() : undefined,
+    };
+  }
   const { data: accounts = [] } = useAccounts();
   const deleteTransaction = useDeleteTransaction();
 
@@ -189,6 +198,24 @@ export default function TransactionsPage() {
             </select>
             <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
           </div>
+
+          {period === "custom" && (
+            <div className="flex items-center gap-2 animate-fade-in">
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="pl-3 pr-3 py-2 rounded-xl border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <span className="text-muted-foreground text-sm">to</span>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="pl-3 pr-3 py-2 rounded-xl border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+          )}
 
           {/* Type filter */}
           <div className="relative">
