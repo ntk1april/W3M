@@ -26,8 +26,27 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginInput) => {
+    let email = data.identifier.trim();
+    
+    // If it doesn't look like an email, assume it's a username and look up the email
+    if (!email.includes("@")) {
+      const res = await fetch("/api/auth/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email }),
+      });
+      
+      if (!res.ok) {
+        toast.error("Username not found");
+        return;
+      }
+      
+      const lookupData = await res.json();
+      email = lookupData.email;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
+      email: email,
       password: data.password,
     });
 
@@ -151,22 +170,22 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Email
+                Email or Username
               </label>
               <input
-                {...register("email")}
-                type="email"
-                placeholder="you@example.com"
+                {...register("identifier")}
+                type="text"
+                placeholder="you@example.com or username"
                 className={cn(
                   "w-full px-4 py-3 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground",
                   "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all",
-                  errors.email &&
+                  errors.identifier &&
                     "border-destructive focus:ring-destructive/30",
                 )}
               />
-              {errors.email && (
+              {errors.identifier && (
                 <p className="text-destructive text-xs mt-1.5">
-                  {errors.email.message}
+                  {errors.identifier.message}
                 </p>
               )}
             </div>

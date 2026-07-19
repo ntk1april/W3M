@@ -33,22 +33,35 @@ export default function SignupPage() {
   });
 
   const onSubmit = async (data: SignupInput) => {
-    const { error } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          display_name: data.displayName,
-        },
-      },
+    // Check username availability first
+    const lookupRes = await fetch("/api/auth/lookup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: data.username.toLowerCase() }),
     });
-
-    if (error) {
-      toast.error(error.message);
+    if (lookupRes.ok) {
+      toast.error("Username already taken. Please choose another.");
       return;
     }
 
-    toast.success("Account created! Please check your email to verify.");
+    // Register the user on the server (handles both Supabase Auth and Prisma DB)
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+        username: data.username,
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      toast.error(errorData.error || "Failed to create account");
+      return;
+    }
+
+    toast.success("Account created!");
     router.push("/login");
   };
 
@@ -149,22 +162,23 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Full Name
-              </label>
+              <label className="block text-sm font-medium mb-2">Username</label>
               <input
-                {...register("displayName")}
+                {...register("username")}
                 type="text"
-                placeholder="Your name"
+                placeholder="e.g. ntk1april"
                 className={cn(
                   "w-full px-4 py-3 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground",
                   "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all",
-                  errors.displayName && "border-destructive",
+                  errors.username && "border-destructive",
                 )}
               />
-              {errors.displayName && (
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Letters, numbers, underscores only
+              </p>
+              {errors.username && (
                 <p className="text-destructive text-xs mt-1.5">
-                  {errors.displayName.message}
+                  {errors.username.message}
                 </p>
               )}
             </div>
@@ -174,7 +188,7 @@ export default function SignupPage() {
               <input
                 {...register("email")}
                 type="email"
-                placeholder="you@example.com"
+                placeholder="nanthakorn@example.com"
                 className={cn(
                   "w-full px-4 py-3 rounded-xl border bg-card text-foreground placeholder:text-muted-foreground",
                   "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all",

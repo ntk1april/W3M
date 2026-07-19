@@ -80,11 +80,26 @@ export function Header({ user }: HeaderProps) {
           </button>
 
           {/* User Avatar */}
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white cursor-pointer"
-            style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
-          >
-            {getInitials(user.user_metadata?.display_name || user.email || "U")}
+          <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-border cursor-pointer shrink-0">
+            {user.user_metadata?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.user_metadata.avatar_url}
+                alt="avatar"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center text-xs font-bold text-white"
+                style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+              >
+                {(
+                  user.user_metadata?.display_name?.[0] ||
+                  user.email?.split("@")[0]?.[0] ||
+                  "U"
+                ).toUpperCase()}
+              </div>
+            )}
           </div>
         </div>
       </div>

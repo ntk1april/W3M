@@ -12,11 +12,23 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Ensure user exists in DB
+    // Ensure user exists in DB and is in sync
+    const username = user.user_metadata?.username;
+    const displayName = user.user_metadata?.display_name;
+
     await prisma.user.upsert({
       where: { id: user.id },
-      update: { email: user.email! },
-      create: { id: user.id, email: user.email! },
+      update: { 
+        email: user.email!,
+        ...(username && { username }),
+        ...(displayName && { displayName }),
+      },
+      create: { 
+        id: user.id, 
+        email: user.email!,
+        ...(username && { username }),
+        ...(displayName && { displayName }),
+      },
     })
 
     const accounts = await prisma.account.findMany({
