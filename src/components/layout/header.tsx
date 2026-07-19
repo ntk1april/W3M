@@ -63,27 +63,29 @@ export function Header({ user }: HeaderProps) {
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-2">
-        {/* Theme Toggle */}
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground
+      <div className="ml-auto">
+        <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground
             hover:bg-muted hover:text-foreground transition-all"
-          title="Toggle theme"
-        >
-          {mounted && theme === "dark" ? (
-            <Sun className="w-4.5 h-4.5" size={18} />
-          ) : (
-            <Moon size={18} />
-          )}
-        </button>
+            title="Toggle theme"
+          >
+            {mounted && theme === "dark" ? (
+              <Sun className="w-4.5 h-4.5" size={18} />
+            ) : (
+              <Moon size={18} />
+            )}
+          </button>
 
-        {/* User Avatar */}
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white cursor-pointer"
-          style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
-        >
-          {getInitials(user.user_metadata?.display_name || user.email || "U")}
+          {/* User Avatar */}
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white cursor-pointer"
+            style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+          >
+            {getInitials(user.user_metadata?.display_name || user.email || "U")}
+          </div>
         </div>
       </div>
     </header>

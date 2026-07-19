@@ -7,25 +7,36 @@ import { formatDate } from "date-fns";
 import { useTransactions, useDeleteTransaction } from "@/hooks/useTransactions";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { EditTransactionDialog } from "./edit-transaction-dialog";
 import type { Transaction } from "@/types";
 
 interface TransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   date: Date;
+  onEdit: (transaction: Transaction) => void;
 }
 
 export function TransactionDialog({
   open,
   onOpenChange,
   date,
+  onEdit,
 }: TransactionDialogProps) {
   const [mounted, setMounted] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
-  const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
-  const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59).toISOString();
+  const startDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  ).toISOString();
+  const endDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    23,
+    59,
+    59,
+  ).toISOString();
 
   const { data, isLoading } = useTransactions({
     startDate,
@@ -46,7 +57,7 @@ export function TransactionDialog({
   if (!open || !mounted) return null;
 
   const transactions = (data?.transactions || []).filter(
-    (t: Transaction) => t.type !== "TRANSFER"
+    (t: Transaction) => t.type !== "TRANSFER",
   );
 
   return createPortal(
@@ -91,38 +102,58 @@ export function TransactionDialog({
             </div>
           ) : (
             transactions.map((transaction: Transaction) => (
-              <div key={transaction.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border/50 group">
+              <div
+                key={transaction.id}
+                className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border/50 group"
+              >
                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-lg shrink-0">
-                  {transaction.type === "TRANSFER" ? "🔄" : transaction.category?.icon || "💸"}
+                  {transaction.type === "TRANSFER"
+                    ? "🔄"
+                    : transaction.category?.icon || "💸"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">{transaction.title}</p>
+                  <p className="font-semibold text-sm truncate">
+                    {transaction.title}
+                  </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {transaction.type === "TRANSFER"
                       ? `${transaction.account?.name} → ${transaction.toAccount?.name}`
                       : transaction.category?.name}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{formatDateTime(transaction.date)}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {formatDateTime(transaction.date)}
+                  </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className={cn(
-                    "font-bold text-sm",
-                    transaction.type === "INCOME" ? "text-green-600 dark:text-green-400"
-                      : transaction.type === "TRANSFER" ? "text-blue-600 dark:text-blue-400"
-                      : "text-red-600 dark:text-red-400",
-                  )}>
-                    {transaction.type === "INCOME" ? "+" : transaction.type === "TRANSFER" ? "" : "-"}
+                  <p
+                    className={cn(
+                      "font-bold text-sm",
+                      transaction.type === "INCOME"
+                        ? "text-green-600 dark:text-green-400"
+                        : transaction.type === "TRANSFER"
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-red-600 dark:text-red-400",
+                    )}
+                  >
+                    {transaction.type === "INCOME"
+                      ? "+"
+                      : transaction.type === "TRANSFER"
+                        ? ""
+                        : "-"}
                     {formatCurrency(transaction.amount)}
                   </p>
                   <div className="flex gap-1 justify-end mt-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => setEditingTransaction(transaction)}
+                      onClick={() => onEdit(transaction)}
                       className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center transition-all"
                     >
                       <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                     <button
-                      onClick={() => { if (confirm("Delete this transaction?")) deleteTransaction.mutate(transaction.id); }}
+                      onClick={() => {
+                        if (confirm("Delete this transaction?"))
+                          deleteTransaction.mutate(transaction.id);
+                      }}
                       className="w-7 h-7 rounded-lg hover:bg-destructive/10 flex items-center justify-center transition-all"
                     >
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
@@ -134,16 +165,7 @@ export function TransactionDialog({
           )}
         </div>
       </div>
-      
-      {editingTransaction && (
-        <EditTransactionDialog
-          open={!!editingTransaction}
-          onOpenChange={(open) => {
-            if (!open) setEditingTransaction(null);
-          }}
-          transactionToEdit={editingTransaction}
-        />
-      )}
+
     </div>,
     document.body,
   );

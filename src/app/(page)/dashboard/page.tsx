@@ -59,6 +59,7 @@ export default function DashboardPage() {
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
+  const [editingFromCalendar, setEditingFromCalendar] = useState<Transaction | null>(null);
 
   const { data: calendarTxData } = useTransactions({
     startDate: startOfMonth(calendarDate).toISOString(),
@@ -564,7 +565,7 @@ export default function DashboardPage() {
                           calendarDate.getFullYear(),
                           calendarDate.getMonth(),
                           day,
-                        )
+                        ),
                       );
                     }}
                   >
@@ -687,6 +688,20 @@ export default function DashboardPage() {
             if (!open) setSelectedCalendarDate(null);
           }}
           date={selectedCalendarDate}
+          onEdit={(transaction) => {
+            setSelectedCalendarDate(null);
+            setEditingFromCalendar(transaction);
+          }}
+        />
+      )}
+
+      {editingFromCalendar && (
+        <EditTransactionDialog
+          open={!!editingFromCalendar}
+          onOpenChange={(open) => {
+            if (!open) setEditingFromCalendar(null);
+          }}
+          transactionToEdit={editingFromCalendar}
         />
       )}
     </div>

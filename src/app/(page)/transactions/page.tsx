@@ -90,8 +90,12 @@ export default function TransactionsPage() {
   let dateRange = getDateRange(period);
   if (period === "custom") {
     dateRange = {
-      startDate: customStartDate ? new Date(`${customStartDate}T00:00:00`).toISOString() : undefined,
-      endDate: customEndDate ? new Date(`${customEndDate}T23:59:59`).toISOString() : undefined,
+      startDate: customStartDate
+        ? new Date(`${customStartDate}T00:00:00`).toISOString()
+        : undefined,
+      endDate: customEndDate
+        ? new Date(`${customEndDate}T23:59:59`).toISOString()
+        : undefined,
     };
   }
   const { data: accounts = [] } = useAccounts();
@@ -286,25 +290,39 @@ export default function TransactionsPage() {
                 {/* ── Mobile card ──────────────────────────────────── */}
                 <div className="sm:hidden flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors group">
                   <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-base shrink-0">
-                    {transaction.type === "TRANSFER" ? "🔄" : transaction.category?.icon || "💸"}
+                    {transaction.type === "TRANSFER"
+                      ? "🔄"
+                      : transaction.category?.icon || "💸"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{transaction.title}</p>
+                    <p className="font-medium text-sm truncate">
+                      {transaction.title}
+                    </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {transaction.type === "TRANSFER"
                         ? `${transaction.account?.name} → ${transaction.toAccount?.name}`
                         : transaction.category?.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">{formatDateTime(transaction.date)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDateTime(transaction.date)}
+                    </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={cn(
-                      "font-bold text-sm",
-                      transaction.type === "INCOME" ? "text-green-600 dark:text-green-400"
-                        : transaction.type === "TRANSFER" ? "text-blue-600 dark:text-blue-400"
-                        : "text-red-600 dark:text-red-400",
-                    )}>
-                      {transaction.type === "INCOME" ? "+" : transaction.type === "TRANSFER" ? "" : "-"}
+                    <p
+                      className={cn(
+                        "font-bold text-sm",
+                        transaction.type === "INCOME"
+                          ? "text-green-600 dark:text-green-400"
+                          : transaction.type === "TRANSFER"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-red-600 dark:text-red-400",
+                      )}
+                    >
+                      {transaction.type === "INCOME"
+                        ? "+"
+                        : transaction.type === "TRANSFER"
+                          ? ""
+                          : "-"}
                       {formatCurrency(transaction.amount)}
                     </p>
                     <div className="flex gap-1 justify-end mt-1">
@@ -315,7 +333,10 @@ export default function TransactionsPage() {
                         <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
                       </button>
                       <button
-                        onClick={() => { if (confirm("Delete this transaction?")) deleteTransaction.mutate(transaction.id); }}
+                        onClick={() => {
+                          if (confirm("Delete this transaction?"))
+                            deleteTransaction.mutate(transaction.id);
+                        }}
                         className="w-7 h-7 rounded-lg hover:bg-destructive/10 flex items-center justify-center transition-all"
                       >
                         <Trash2 className="w-3.5 h-3.5 text-destructive" />
@@ -329,29 +350,39 @@ export default function TransactionsPage() {
                   {/* Category Icon */}
                   <div className="col-span-1">
                     <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-base">
-                      {transaction.type === "TRANSFER" ? "🔄" : transaction.category?.icon || "💸"}
+                      {transaction.type === "TRANSFER"
+                        ? "🔄"
+                        : transaction.category?.icon || "💸"}
                     </div>
                   </div>
 
                   {/* Name */}
                   <div className="col-span-4 min-w-0">
-                    <p className="font-medium text-sm truncate">{transaction.title}</p>
+                    <p className="font-medium text-sm truncate">
+                      {transaction.title}
+                    </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className={cn(
-                        "text-xs px-1.5 py-0.5 rounded-full font-medium",
-                        transaction.type === "INCOME" ? "badge-income"
-                          : transaction.type === "TRANSFER"
-                            ? "text-blue-600 dark:text-blue-400 bg-blue-900/10 dark:bg-blue-500/10 border border-blue-600 dark:border-blue-400"
-                          : "badge-expense",
-                      )}>
+                      <span
+                        className={cn(
+                          "text-xs px-1.5 py-0.5 rounded-full font-medium",
+                          transaction.type === "INCOME"
+                            ? "badge-income"
+                            : transaction.type === "TRANSFER"
+                              ? "text-blue-600 dark:text-blue-400 bg-blue-900/10 dark:bg-blue-500/10 border border-blue-600 dark:border-blue-400"
+                              : "badge-expense",
+                        )}
+                      >
                         {transaction.type}
                       </span>
                       {transaction.type === "TRANSFER" ? (
                         <span className="text-xs text-muted-foreground">
-                          {transaction.account?.name} → {transaction.toAccount?.name}
+                          {transaction.account?.name} →{" "}
+                          {transaction.toAccount?.name}
                         </span>
                       ) : (
-                        <span className="text-xs text-muted-foreground">{transaction.category?.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {transaction.category?.name}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -359,25 +390,42 @@ export default function TransactionsPage() {
                   {/* Account */}
                   <div className="col-span-2">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ background: transaction.account?.color || "#6B7280" }} />
-                      <span className="text-sm truncate">{transaction.account?.name}</span>
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{
+                          background: transaction.account?.color || "#6B7280",
+                        }}
+                      />
+                      <span className="text-sm truncate">
+                        {transaction.account?.name}
+                      </span>
                     </div>
                   </div>
 
                   {/* Date */}
                   <div className="col-span-2">
-                    <p className="text-sm text-muted-foreground">{formatDateTime(transaction.date)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatDateTime(transaction.date)}
+                    </p>
                   </div>
 
                   {/* Amount */}
                   <div className="col-span-2 text-right">
-                    <p className={cn(
-                      "font-bold text-sm",
-                      transaction.type === "INCOME" ? "text-green-600 dark:text-green-400"
-                        : transaction.type === "TRANSFER" ? "text-blue-600 dark:text-blue-400"
-                        : "text-red-600 dark:text-red-400",
-                    )}>
-                      {transaction.type === "INCOME" ? "+" : transaction.type === "TRANSFER" ? "" : "-"}
+                    <p
+                      className={cn(
+                        "font-bold text-sm",
+                        transaction.type === "INCOME"
+                          ? "text-green-600 dark:text-green-400"
+                          : transaction.type === "TRANSFER"
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-red-600 dark:text-red-400",
+                      )}
+                    >
+                      {transaction.type === "INCOME"
+                        ? "+"
+                        : transaction.type === "TRANSFER"
+                          ? ""
+                          : "-"}
                       {formatCurrency(transaction.amount)}
                     </p>
                   </div>
@@ -391,7 +439,10 @@ export default function TransactionsPage() {
                       <Edit2 className="w-3.5 h-3.5 text-muted-foreground" />
                     </button>
                     <button
-                      onClick={() => { if (confirm("Delete this transaction?")) deleteTransaction.mutate(transaction.id); }}
+                      onClick={() => {
+                        if (confirm("Delete this transaction?"))
+                          deleteTransaction.mutate(transaction.id);
+                      }}
                       className="w-7 h-7 rounded-lg hover:bg-destructive/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <Trash2 className="w-3.5 h-3.5 text-destructive" />
