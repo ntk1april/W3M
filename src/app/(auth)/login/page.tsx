@@ -27,7 +27,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginInput) => {
     let email = data.identifier.trim();
-    
+
     // If it doesn't look like an email, assume it's a username and look up the email
     if (!email.includes("@")) {
       const res = await fetch("/api/auth/lookup", {
@@ -35,12 +35,12 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: email }),
       });
-      
+
       if (!res.ok) {
         toast.error("Username not found");
         return;
       }
-      
+
       const lookupData = await res.json();
       email = lookupData.email;
     }
@@ -56,8 +56,8 @@ export default function LoginPage() {
     }
 
     toast.success("Welcome back! 👋");
+    window.location.reload();
     router.push("/dashboard");
-    router.refresh();
   };
 
   return (

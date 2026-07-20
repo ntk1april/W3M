@@ -1,6 +1,9 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
+
+const TIMEZONE = 'Asia/Bangkok'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -15,15 +18,15 @@ export function formatCurrency(amount: number): string {
 }
 
 export function formatDate(date: Date | string): string {
-  return format(new Date(date), 'MMM dd, yyyy')
+  return formatInTimeZone(new Date(date), TIMEZONE, 'MMM dd, yyyy')
 }
 
 export function formatDateTime(date: Date | string): string {
-  return format(new Date(date), 'MMM dd, yyyy HH:mm')
+  return formatInTimeZone(new Date(date), TIMEZONE, 'MMM dd, yyyy HH:mm')
 }
 
 export function formatTime(date: Date | string): string {
-  return format(new Date(date), 'HH:mm')
+  return formatInTimeZone(new Date(date), TIMEZONE, 'HH:mm')
 }
 
 export function formatRelativeTime(date: Date | string): string {
@@ -31,11 +34,11 @@ export function formatRelativeTime(date: Date | string): string {
 }
 
 export function getMonthYear(date: Date | string): string {
-  return format(new Date(date), 'MMMM yyyy')
+  return formatInTimeZone(new Date(date), TIMEZONE, 'MMMM yyyy')
 }
 
 export function getDayKey(date: Date | string): string {
-  return format(new Date(date), 'yyyy-MM-dd')
+  return formatInTimeZone(new Date(date), TIMEZONE, 'yyyy-MM-dd')
 }
 
 export const EXPENSE_CATEGORIES = [

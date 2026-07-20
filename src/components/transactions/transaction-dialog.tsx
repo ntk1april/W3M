@@ -3,9 +3,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Edit2, Trash2, Loader2 } from "lucide-react";
-import { formatDate } from "date-fns";
+import { formatCurrency, formatDateTime, formatDate } from "@/lib/utils";
 import { useTransactions, useDeleteTransaction } from "@/hooks/useTransactions";
-import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { Transaction } from "@/types";
 
@@ -78,7 +77,7 @@ export function TransactionDialog({
           <div className="flex items-center gap-3">
             <div>
               <h2 className="font-bold text-lg">
-                Transactions on {formatDate(date, "PPP")}
+                Transactions on {formatDate(date)}
               </h2>
             </div>
           </div>
@@ -163,9 +162,48 @@ export function TransactionDialog({
               </div>
             ))
           )}
+          <div className="flex items-center justify-between p-2 mt-4 border-t border-border shrink-0">
+            <div className="flex items-center gap-3">
+              <div>
+                <h2 className="font-bold text-lg">Total expense:</h2>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div>
+                <h2 className="font-bold text-lg text-red-600 dark:text-red-400">
+                  {formatCurrency(
+                    transactions.reduce(
+                      (acc: number, t: Transaction) =>
+                        acc + (t.type === "EXPENSE" ? t.amount : 0),
+                      0,
+                    ),
+                  )}
+                </h2>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-2 border-border shrink-0">
+            <div className="flex items-center gap-3">
+              <div>
+                <h2 className="font-bold text-lg">Total income:</h2>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div>
+                <h2 className="font-bold text-lg text-green-600 dark:text-green-400">
+                  {formatCurrency(
+                    transactions.reduce(
+                      (acc: number, t: Transaction) =>
+                        acc + (t.type === "INCOME" ? t.amount : 0),
+                      0,
+                    ),
+                  )}
+                </h2>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
     </div>,
     document.body,
   );

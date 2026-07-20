@@ -11,6 +11,8 @@ import {
   Trash2,
   Edit2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ArrowLeftRight,
 } from "lucide-react";
 import type { Transaction, Account } from "@/types";
@@ -84,6 +86,8 @@ export default function TransactionsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
 
@@ -106,36 +110,24 @@ export default function TransactionsPage() {
     type: typeFilter || undefined,
     accountId: accountFilter || undefined,
     ...dateRange,
-    limit: 100,
+    limit,
+    offset: (page - 1) * limit,
   });
 
   const transactions = data?.transactions || [];
   const total = data?.total || 0;
 
   // Stats
-  const totalIncome = transactions
-    .filter((t: Transaction) => t.type === "INCOME")
-    .reduce((s: number, t: Transaction) => s + t.amount, 0);
-  const totalExpense = transactions
-    .filter((t: Transaction) => t.type === "EXPENSE")
-    .reduce((s: number, t: Transaction) => s + t.amount, 0);
+  const totalIncome = data?.stats?.totalIncome || 0;
+  const totalExpense = data?.stats?.totalExpense || 0;
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    clearTimeout(
-      (
-        window as typeof window & {
-          searchTimeout?: ReturnType<typeof setTimeout>;
-        }
-      ).searchTimeout,
-    );
-    (
-      window as typeof window & {
-        searchTimeout?: ReturnType<typeof setTimeout>;
-      }
-    ).searchTimeout = setTimeout(() => {
+    setPage(1);
+    const timeout = setTimeout(() => {
       setDebouncedSearch(value);
-    }, 400);
+    }, 500);
+    return () => clearTimeout(timeout);
   };
 
   return (
@@ -190,9 +182,11 @@ export default function TransactionsPage() {
           <div className="relative">
             <select
               value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 rounded-xl border bg-background text-foreground text-sm
-                focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+              onChange={(e) => {
+                setPeriod(e.target.value);
+                setPage(1);
+              }}
+              className="appearance-none bg-card border border-border text-foreground text-sm rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer font-medium"
             >
               {periodOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -225,9 +219,11 @@ export default function TransactionsPage() {
           <div className="relative">
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 rounded-xl border bg-background text-foreground text-sm
-                focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setPage(1);
+              }}
+              className="appearance-none bg-card border border-border text-foreground text-sm rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer font-medium"
             >
               <option value="">All Types</option>
               <option value="INCOME">Income</option>
@@ -241,9 +237,11 @@ export default function TransactionsPage() {
           <div className="relative">
             <select
               value={accountFilter}
-              onChange={(e) => setAccountFilter(e.target.value)}
-              className="appearance-none pl-3 pr-8 py-2 rounded-xl border bg-background text-foreground text-sm
-                focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+              onChange={(e) => {
+                setAccountFilter(e.target.value);
+                setPage(1);
+              }}
+              className="appearance-none bg-card border border-border text-foreground text-sm rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all cursor-pointer font-medium"
             >
               <option value="">All Accounts</option>
               {accounts.map((acc: Account) => (
@@ -451,6 +449,49 @@ export default function TransactionsPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        
+        {/* Pagination Controls */}
+        {transactions.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border bg-card gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Rows per page:</span>
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="px-2 py-1 bg-transparent border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+              >
+                <option value={10}>10</option>
+                <option value={30}>30</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">
+                {total === 0 ? 0 : (page - 1) * limit + 1}-{Math.min(page * limit, total)} of {total}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-1 rounded-md hover:bg-muted disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={page * limit >= total}
+                  className="p-1 rounded-md hover:bg-muted disabled:opacity-50 disabled:hover:bg-transparent cursor-pointer transition-colors"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -54,7 +54,34 @@ export async function GET(request: Request) {
       prisma.transaction.count({ where }),
     ])
 
-    return NextResponse.json({ transactions, total })
+    // Calculate stats correctly for all transactions matching the filter (not just the first page)
+    const allTransactions = await prisma.transaction.findMany({
+      where,
+      select: { type: true, amount: true, accountId: true, toAccountId: true }
+    });
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    for (const t of allTransactions) {
+      if (t.type === 'INCOME') {
+        totalIncome += t.amount;
+      } else if (t.type === 'EXPENSE') {
+        totalExpense += t.amount;
+      } else if (t.type === 'TRANSFER') {
+        if (accountId) {
+          // If filtering by a specific account, count transfers in/out of it
+          if (t.accountId === accountId) {
+            totalExpense += t.amount; // Money leaving the selected account
+          }
+          if (t.toAccountId === accountId) {
+            totalIncome += t.amount; // Money entering the selected account
+          }
+        }
+      }
+    }
+
+    return NextResponse.json({ transactions, total, stats: { totalIncome, totalExpense } })
   } catch (error) {
     console.error('Error fetching transactions:', error)
     return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 })

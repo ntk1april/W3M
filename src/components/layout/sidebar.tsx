@@ -48,7 +48,9 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+              style={{
+                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+              }}
             >
               💸
             </div>
@@ -110,9 +112,13 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted transition-colors cursor-pointer">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-              style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+              style={{
+                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+              }}
             >
-              {getInitials(user.user_metadata?.display_name || user.email || "U")}
+              {getInitials(
+                user.user_metadata?.display_name || user.email || "U",
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate">

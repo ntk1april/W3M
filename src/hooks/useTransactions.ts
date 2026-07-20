@@ -24,7 +24,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
   if (filters.endDate) params.set('endDate', filters.endDate)
   if (filters.search) params.set('search', filters.search)
 
-  return useQuery<{ transactions: Transaction[]; total: number }>({
+  return useQuery<{ transactions: Transaction[]; total: number; stats: { totalIncome: number; totalExpense: number } }>({
     queryKey: ['transactions', filters],
     queryFn: async () => {
       const res = await fetch(`/api/transactions?${params.toString()}`)

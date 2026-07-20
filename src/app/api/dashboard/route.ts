@@ -11,6 +11,7 @@ import {
   startOfYear,
   endOfYear,
 } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
 export async function GET() {
   try {
@@ -23,15 +24,19 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const TIMEZONE = "Asia/Bangkok";
     const now = new Date();
-    const todayStart = startOfDay(now);
-    const todayEnd = endOfDay(now);
-    const weekStart = startOfWeek(now);
-    const weekEnd = endOfWeek(now);
-    const monthStart = startOfMonth(now);
-    const monthEnd = endOfMonth(now);
-    const yearStart = startOfYear(now);
-    const yearEnd = endOfYear(now);
+    const zonedNow = toZonedTime(now, TIMEZONE);
+
+    // Calculate start/end dates in Bangkok time, then convert back to true UTC
+    const todayStart = fromZonedTime(startOfDay(zonedNow), TIMEZONE);
+    const todayEnd = fromZonedTime(endOfDay(zonedNow), TIMEZONE);
+    const weekStart = fromZonedTime(startOfWeek(zonedNow, { weekStartsOn: 1 }), TIMEZONE); // Week starts on Monday
+    const weekEnd = fromZonedTime(endOfWeek(zonedNow, { weekStartsOn: 1 }), TIMEZONE);
+    const monthStart = fromZonedTime(startOfMonth(zonedNow), TIMEZONE);
+    const monthEnd = fromZonedTime(endOfMonth(zonedNow), TIMEZONE);
+    const yearStart = fromZonedTime(startOfYear(zonedNow), TIMEZONE);
+    const yearEnd = fromZonedTime(endOfYear(zonedNow), TIMEZONE);
 
     const [
       accounts,
@@ -71,11 +76,11 @@ export async function GET() {
         include: { account: true, toAccount: true, category: true },
         orderBy: { date: "desc" },
       }),
-      // Monthly data for the last 6 months
+      // Monthly data for the last 6 months (converted to Bangkok time for accurate grouping)
       prisma.$queryRaw`
           SELECT 
-            TO_CHAR(date, 'Mon YYYY') as month,
-            DATE_TRUNC('month', date) as month_date,
+            TO_CHAR(date AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Bangkok', 'Mon YYYY') as month,
+            DATE_TRUNC('month', date AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Bangkok') as month_date,
             SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) as income,
             SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) as expense
           FROM "Transaction"

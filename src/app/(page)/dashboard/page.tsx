@@ -58,8 +58,11 @@ export default function DashboardPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
-  const [editingFromCalendar, setEditingFromCalendar] = useState<Transaction | null>(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(
+    null,
+  );
+  const [editingFromCalendar, setEditingFromCalendar] =
+    useState<Transaction | null>(null);
 
   const { data: calendarTxData } = useTransactions({
     startDate: startOfMonth(calendarDate).toISOString(),
@@ -91,6 +94,8 @@ export default function DashboardPage() {
     monthExpense = 0,
     yearIncome = 0,
     yearExpense = 0,
+    allTimeIncome = 0,
+    allTimeExpense = 0,
     recentTransactions = [],
     monthlyData = [],
   } = data;
@@ -332,7 +337,7 @@ export default function DashboardPage() {
                             ? "TRF"
                             : "OUT"}
                       </span>
-                      <button
+                      {/* <button
                         onClick={() => setEditingTransaction(transaction)}
                         className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                       >
@@ -347,7 +352,7 @@ export default function DashboardPage() {
                         className="w-7 h-7 rounded-lg hover:bg-destructive/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
                       >
                         <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 ))}
@@ -632,6 +637,12 @@ export default function DashboardPage() {
                 income: yearIncome,
                 expense: yearExpense,
                 icon: "📊",
+              },
+              {
+                label: "All Time",
+                income: allTimeIncome,
+                expense: allTimeExpense,
+                icon: "💰",
               },
             ].map((item) => (
               <div

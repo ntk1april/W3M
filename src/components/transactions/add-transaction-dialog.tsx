@@ -9,8 +9,7 @@ import { transactionSchema, type TransactionInput } from "@/lib/validations";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCategories } from "@/hooks/useDashboard";
 import { useCreateTransaction } from "@/hooks/useTransactions";
-import { cn, formatCurrency } from "@/lib/utils";
-import { format } from "date-fns";
+import { cn, formatCurrency, getDayKey } from "@/lib/utils";
 import type { Category, Account, Transaction } from "@/types";
 
 type Step = 1 | 2;
@@ -411,9 +410,9 @@ export function AddTransactionDialog({
                     <input
                       type="date"
                       value={
-                        field.value ? format(field.value, "yyyy-MM-dd") : ""
+                        field.value ? getDayKey(field.value) : ""
                       }
-                      onChange={(e) => field.onChange(new Date(e.target.value))}
+                      onChange={(e) => field.onChange(new Date(`${e.target.value}T00:00:00`))}
                       className="w-full px-4 py-3 rounded-xl border bg-card text-foreground
                         focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                     />
