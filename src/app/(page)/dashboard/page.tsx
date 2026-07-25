@@ -636,7 +636,7 @@ export default function DashboardPage() {
                 label: "This Year",
                 income: yearIncome,
                 expense: yearExpense,
-                icon: "📊",
+                icon: "📆",
               },
               {
                 label: "All Time",

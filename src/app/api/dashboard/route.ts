@@ -44,6 +44,7 @@ export async function GET() {
       weekStats,
       monthStats,
       yearStats,
+      allTimeStats,
       recentTransactions,
       monthlyData,
     ] = await Promise.all([
@@ -69,6 +70,11 @@ export async function GET() {
       prisma.transaction.groupBy({
         by: ["type"],
         where: { userId: user.id, date: { gte: yearStart, lte: yearEnd } },
+        _sum: { amount: true },
+      }),
+      prisma.transaction.groupBy({
+        by: ["type"],
+        where: { userId: user.id },
         _sum: { amount: true },
       }),
       prisma.transaction.findMany({
@@ -107,6 +113,8 @@ export async function GET() {
       monthExpense: getStat(monthStats, "EXPENSE"),
       yearIncome: getStat(yearStats, "INCOME"),
       yearExpense: getStat(yearStats, "EXPENSE"),
+      allTimeIncome: getStat(allTimeStats, "INCOME"),
+      allTimeExpense: getStat(allTimeStats, "EXPENSE"),
       recentTransactions,
       monthlyData,
     });
