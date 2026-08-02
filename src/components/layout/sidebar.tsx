@@ -46,14 +46,11 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
-              }}
-            >
-              💸
-            </div>
+            <img
+              src="/w3m.png"
+              alt="W3M Logo"
+              className="h-10 w-10 object-contain rounded-xl shadow-md border border-white/20 bg-white/10 backdrop-blur-md group-hover:rotate-6 transition-transform"
+            />
             <div>
               <span className="font-bold text-lg leading-none">W3M</span>
               <p className="text-xs text-muted-foreground leading-none mt-0.5">

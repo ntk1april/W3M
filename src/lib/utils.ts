@@ -52,6 +52,7 @@ export const EXPENSE_CATEGORIES = [
   { name: 'Investment', icon: '📈', color: '#22C55E' },
   { name: 'Healthcare', icon: '🏥', color: '#14B8A6' },
   { name: 'Education', icon: '📚', color: '#F97316' },
+  { name: 'Game', icon: '🎮', color: '#A855F7' },
   { name: 'Others', icon: '📦', color: '#6B7280' },
 ]
 
@@ -62,6 +63,7 @@ export const INCOME_CATEGORIES = [
   { name: 'Investment', icon: '📈', color: '#6366F1' },
   { name: 'Gift', icon: '🎀', color: '#EC4899' },
   { name: 'Refund', icon: '↩️', color: '#F59E0B' },
+  { name: 'General', icon: '📋', color: '#64748B' },
   { name: 'Others', icon: '💼', color: '#6B7280' },
 ]
 

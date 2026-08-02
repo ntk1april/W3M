@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { getInitials } from "@/lib/utils";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -40,15 +41,16 @@ export function Header({ user }: HeaderProps) {
   return (
     <header className="h-14 sm:h-16 border-b border-border bg-card/80 backdrop-blur-md flex items-center px-4 sm:px-6 gap-4 shrink-0 sticky top-0 z-30">
       {/* Mobile brand */}
-      <div className="lg:hidden flex items-center gap-2 shrink-0">
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
-          style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
-        >
-          💸
+      <Link href="/dashboard">
+        <div className="lg:hidden flex items-center gap-2 shrink-0">
+          <img
+            src="/w3m.png"
+            alt="W3M Logo"
+            className="h-10 w-10 object-contain rounded-xl shadow-md border border-white/20 bg-white/10 backdrop-blur-md group-hover:rotate-6 transition-transform"
+          />
+          <span className="font-bold text-base leading-none">W3M</span>
         </div>
-        <span className="font-bold text-base leading-none">W3M</span>
-      </div>
+      </Link>
 
       {/* Left - Title/Greeting */}
       <div className="flex-1 min-w-0 hidden lg:block">
@@ -91,7 +93,9 @@ export function Header({ user }: HeaderProps) {
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+                style={{
+                  background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+                }}
               >
                 {(
                   user.user_metadata?.display_name?.[0] ||

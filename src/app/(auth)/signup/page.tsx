@@ -93,12 +93,11 @@ export default function SignupPage() {
 
         <div className="relative z-10 text-center text-white px-12">
           <div className="flex justify-center mb-8">
-            <div
-              className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center
-              border border-white/30 shadow-2xl"
-            >
-              <Wallet className="w-10 h-10 text-white" />
-            </div>
+            <img
+              src="/w3m.png"
+              alt="W3M Logo"
+              className="h-35 w-35 object-contain rounded-xl shadow-md border border-white/20 bg-white/10 backdrop-blur-md group-hover:rotate-6 transition-transform"
+            />
           </div>
           <h1 className="text-5xl font-bold mb-4">W3M</h1>
           <p className="text-xl font-medium text-blue-100 mb-2">
@@ -126,14 +125,11 @@ export default function SignupPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-background overflow-y-auto">
         <div className="w-full max-w-md py-8">
           <div className="flex items-center gap-3 mb-8 lg:hidden">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{
-                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
-              }}
-            >
-              <Wallet className="w-5 h-5 text-white" />
-            </div>
+            <img
+              src="/w3m.png"
+              alt="W3M Logo"
+              className="h-20 w-20 object-contain rounded-xl shadow-md border border-white/20 bg-white/10 backdrop-blur-md group-hover:rotate-6 transition-transform"
+            />
             <div>
               <h1 className="text-xl font-bold">W3M</h1>
               <p className="text-xs text-muted-foreground">

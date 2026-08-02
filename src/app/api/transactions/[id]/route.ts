@@ -33,7 +33,10 @@ export async function PUT(
         where: { id, userId: user.id },
         data: { 
           type, title, amount: newAmount, date: new Date(date), 
-          accountId, toAccountId, categoryId: type === 'TRANSFER' ? null : categoryId, note, receipt 
+          accountId,
+          toAccountId: type === 'TRANSFER' ? (toAccountId || null) : null,
+          categoryId: type === 'TRANSFER' ? null : (categoryId || null),
+          note, receipt 
         },
         include: { account: true, toAccount: true, category: true },
       })

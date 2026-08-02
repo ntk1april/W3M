@@ -1,7 +1,15 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { Download, Database, Shield, Palette, User, Link, Loader2 } from "lucide-react";
+import {
+  Download,
+  Database,
+  Shield,
+  Palette,
+  User,
+  Link,
+  Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -18,19 +26,32 @@ export default function SettingsPage() {
   const [avatarUrlInput, setAvatarUrlInput] = useState("");
   const [savingAvatar, setSavingAvatar] = useState(false);
   const [savingName, setSavingName] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{ id: string; email?: string; user_metadata: Record<string, string> } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    email?: string;
+    user_metadata: Record<string, string>;
+  } | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }: Awaited<ReturnType<typeof supabase.auth.getUser>>) => {
-      if (user) {
-        setCurrentUser(user as typeof currentUser);
-        const savedName = user.user_metadata?.display_name || user.email?.split("@")[0] || "";
-        setDisplayName(savedName);
-        const url = user.user_metadata?.avatar_url || null;
-        setAvatarUrl(url);
-        setAvatarUrlInput(url || "");
-      }
-    });
+    supabase.auth
+      .getUser()
+      .then(
+        ({
+          data: { user },
+        }: Awaited<ReturnType<typeof supabase.auth.getUser>>) => {
+          if (user) {
+            setCurrentUser(user as typeof currentUser);
+            const savedName =
+              user.user_metadata?.display_name ||
+              user.email?.split("@")[0] ||
+              "";
+            setDisplayName(savedName);
+            const url = user.user_metadata?.avatar_url || null;
+            setAvatarUrl(url);
+            setAvatarUrlInput(url || "");
+          }
+        },
+      );
   }, []);
 
   const handleSaveAvatarUrl = async () => {
@@ -38,12 +59,14 @@ export default function SettingsPage() {
     setSavingAvatar(true);
     try {
       const url = avatarUrlInput.trim() || null;
-      const { error } = await supabase.auth.updateUser({ data: { avatar_url: url } });
+      const { error } = await supabase.auth.updateUser({
+        data: { avatar_url: url },
+      });
       if (error) throw new Error(error.message);
 
-      await fetch('/api/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ avatarUrl: url }),
       });
 
@@ -51,7 +74,9 @@ export default function SettingsPage() {
       toast.success(url ? "Avatar updated!" : "Avatar removed");
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update avatar");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update avatar",
+      );
     } finally {
       setSavingAvatar(false);
     }
@@ -67,14 +92,14 @@ export default function SettingsPage() {
       if (error) throw new Error(error.message);
 
       // Also sync to Prisma User table
-      const apiRes = await fetch('/api/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const apiRes = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ displayName: displayName.trim() }),
       });
       if (!apiRes.ok) {
         const body = await apiRes.json().catch(() => ({}));
-        throw new Error(body?.error || 'Failed to sync display name');
+        throw new Error(body?.error || "Failed to sync display name");
       }
 
       toast.success("Name updated!");
@@ -164,12 +189,18 @@ export default function SettingsPage() {
             <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-border shrink-0">
               {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover"
-                  onError={() => setAvatarUrl(null)} />
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                  onError={() => setAvatarUrl(null)}
+                />
               ) : (
                 <div
                   className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
+                  style={{
+                    background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+                  }}
                 >
                   {fallbackLetter}
                 </div>
@@ -177,15 +208,23 @@ export default function SettingsPage() {
             </div>
             {/* URL input */}
             <div className="flex-1 space-y-2">
-              <p className="font-medium text-sm">{currentUser?.user_metadata?.display_name || currentUser?.email?.split("@")[0] || "—"}</p>
-              <p className="text-xs text-muted-foreground">{currentUser?.email}</p>
+              <p className="font-medium text-sm">
+                {currentUser?.user_metadata?.display_name ||
+                  currentUser?.email?.split("@")[0] ||
+                  "—"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {currentUser?.email}
+              </p>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Link className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <input
                     value={avatarUrlInput}
                     onChange={(e) => setAvatarUrlInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSaveAvatarUrl()}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && handleSaveAvatarUrl()
+                    }
                     placeholder="https://example.com/avatar.jpg"
                     className="w-full pl-9 pr-3 py-2 rounded-xl border bg-background text-foreground text-sm
                       focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
@@ -196,10 +235,16 @@ export default function SettingsPage() {
                   disabled={savingAvatar}
                   className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-all disabled:opacity-60"
                 >
-                  {savingAvatar ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
+                  {savingAvatar ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Save"
+                  )}
                 </button>
               </div>
-              <p className="text-[11px] text-muted-foreground">Paste any public image URL. Clear and save to remove.</p>
+              <p className="text-[11px] text-muted-foreground">
+                Paste any public image URL. Clear and save to remove.
+              </p>
             </div>
           </div>
 
@@ -221,7 +266,11 @@ export default function SettingsPage() {
                 className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium
                   hover:opacity-90 transition-all disabled:opacity-60"
               >
-                {savingName ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
+                {savingName ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  "Save"
+                )}
               </button>
             </div>
           </div>
@@ -238,7 +287,9 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between p-4">
             <div>
               <p className="font-medium text-sm">Dark Mode</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Switch between light and dark themes</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Switch between light and dark themes
+              </p>
             </div>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -268,7 +319,9 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between p-4">
             <div>
               <p className="font-medium text-sm">Export as CSV</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Download all transactions as CSV file</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Download all transactions as CSV file
+              </p>
             </div>
             <button
               onClick={handleExportCSV}
@@ -281,13 +334,17 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between p-4">
             <div>
               <p className="font-medium text-sm">Backup Database</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Export all data as JSON backup</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Export all data as JSON backup
+              </p>
             </div>
             <button
               onClick={async () => {
                 const res = await fetch("/api/transactions?limit=100000");
                 const data = await res.json();
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                const blob = new Blob([JSON.stringify(data, null, 2)], {
+                  type: "application/json",
+                });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
@@ -315,7 +372,9 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between p-4">
             <div>
               <p className="font-medium text-sm">Sign Out</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Log out of your W3M account</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Log out of your W3M account
+              </p>
             </div>
             <button
               onClick={handleLogout}
@@ -328,15 +387,16 @@ export default function SettingsPage() {
       </div>
 
       {/* App Info */}
-      <div className="bg-card rounded-2xl border border-border p-5 text-center">
-        <div
-          className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center text-2xl"
-          style={{ background: "linear-gradient(135deg, #2563EB22, #7C3AED22)" }}
-        >
-          💸
-        </div>
+      <div className="bg-card rounded-2xl border border-border p-5 text-center flex flex-col items-center justify-center">
+        <img
+          src="/w3m.png"
+          alt="W3M Logo"
+          className="h-10 w-10 object-contain rounded-xl shadow-md border border-white/20 bg-white/10 backdrop-blur-md group-hover:rotate-6 transition-transform mb-2"
+        />
         <p className="font-bold text-lg gradient-text">W3M</p>
-        <p className="text-xs text-muted-foreground mt-1">Where Ma Money Missing</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Where Ma Money Missing
+        </p>
         <p className="text-xs text-muted-foreground mt-0.5">Version 1.0.0</p>
       </div>
     </div>

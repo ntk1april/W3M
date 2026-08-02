@@ -254,7 +254,7 @@ export function AddTransactionDialog({
                 type="button"
                 onClick={() => {
                   if (selectedType === "EXPENSE") {
-                    setValue("categoryId", "cmqz7sjhg0000kjlsz1clmbj4");
+                    setValue("categoryId", "cmsbndxvg0000kjtoq5551usn");
                   } else if (selectedType === "INCOME") {
                     setValue("categoryId", "cmqz7sjhh000dkjlssubo9juo");
                   }
@@ -409,10 +409,10 @@ export function AddTransactionDialog({
                   render={({ field }) => (
                     <input
                       type="date"
-                      value={
-                        field.value ? getDayKey(field.value) : ""
+                      value={field.value ? getDayKey(field.value) : ""}
+                      onChange={(e) =>
+                        field.onChange(new Date(`${e.target.value}T00:00:00`))
                       }
-                      onChange={(e) => field.onChange(new Date(`${e.target.value}T00:00:00`))}
                       className="w-full px-4 py-3 rounded-xl border bg-card text-foreground
                         focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                     />

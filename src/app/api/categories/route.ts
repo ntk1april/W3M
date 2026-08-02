@@ -13,19 +13,11 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Ensure user exists in DB
-    await prisma.user.upsert({
-      where: { id: user.id },
-      update: { email: user.email! },
-      create: { id: user.id, email: user.email! },
-    })
-
-    // Seed default categories if none exist
-    const count = await prisma.category.count({ where: { userId: user.id } })
+    // Seed global categories if the table is empty (first ever run)
+    const count = await prisma.category.count()
 
     if (count === 0) {
       const expenseData = EXPENSE_CATEGORIES.map((c) => ({
-        userId: user.id,
         name: c.name,
         type: 'EXPENSE' as const,
         icon: c.icon,
@@ -34,7 +26,6 @@ export async function GET() {
       }))
 
       const incomeData = INCOME_CATEGORIES.map((c) => ({
-        userId: user.id,
         name: c.name,
         type: 'INCOME' as const,
         icon: c.icon,
@@ -47,8 +38,8 @@ export async function GET() {
       })
     }
 
+    // All categories are global — return them all
     const categories = await prisma.category.findMany({
-      where: { userId: user.id },
       orderBy: [{ type: 'asc' }, { name: 'asc' }],
     })
 
