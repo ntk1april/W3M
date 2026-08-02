@@ -85,12 +85,13 @@ Open [http://localhost:3000](http://localhost:3000)
 - CSV export of all transactions
 - Category management
 
-### 📱 Responsive Design
+### 📱 Responsive Design & Native App
 
 - Desktop sidebar navigation
 - Mobile bottom navigation bar
 - All pages fully responsive (mobile-first)
 - Floating Action Button (FAB) positioned above mobile nav bar
+- **Native Android App**: Packaged using Capacitor. See the [Mobile App Guide](./MOBILE_APP_GUIDE.md) for setup and build instructions.
 
 ---
 
@@ -116,9 +117,12 @@ Open [http://localhost:3000](http://localhost:3000)
 | Command             | Description                    |
 | ------------------- | ------------------------------ |
 | `npm run dev`       | Start dev server (Turbopack)   |
+| `npm run dev:android` | Start dev server for Android emulator |
 | `npm run build`     | Production build               |
 | `npm run db:push`   | Push Prisma schema to Supabase |
 | `npm run db:studio` | Open Prisma Studio GUI         |
+| `npm run cap:sync`  | Sync Capacitor config to Android |
+| `npm run cap:open`  | Open project in Android Studio   |
 
 ---
 
