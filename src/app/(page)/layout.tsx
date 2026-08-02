@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { AddTransactionFab } from "@/components/transactions/add-transaction-fab";
+import { PullToRefresh } from "@/components/layout/pull-to-refresh";
 
 export default async function DashboardLayout({
   children,
@@ -26,9 +27,7 @@ export default async function DashboardLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Header user={user} />
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6 pb-20 lg:pb-6">
-          <div className="max-w-7xl mx-auto">{children}</div>
-        </main>
+        <PullToRefresh>{children}</PullToRefresh>
       </div>
 
       {/* Floating Add Button */}

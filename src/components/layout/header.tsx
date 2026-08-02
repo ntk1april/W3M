@@ -1,12 +1,13 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, RefreshCw } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import { getInitials } from "@/lib/utils";
+import { getInitials, cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -23,7 +24,9 @@ interface HeaderProps {
 export function Header({ user }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [mounted, setMounted] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line
@@ -67,6 +70,24 @@ export function Header({ user }: HeaderProps) {
       {/* Right Actions */}
       <div className="ml-auto">
         <div className="flex items-center gap-2">
+          {/* Manual Refresh Button */}
+          <button
+            onClick={async () => {
+              if (isRefreshing) return;
+              setIsRefreshing(true);
+              try {
+                await queryClient.invalidateQueries();
+              } finally {
+                setTimeout(() => setIsRefreshing(false), 500);
+              }
+            }}
+            className="w-9 h-9 rounded-lg flex items-center justify-center text-muted-foreground
+            hover:bg-muted hover:text-foreground transition-all cursor-pointer"
+            title="Refresh data"
+          >
+            <RefreshCw className={cn("w-4.5 h-4.5", isRefreshing && "animate-spin text-primary")} size={18} />
+          </button>
+
           {/* Theme Toggle */}
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
