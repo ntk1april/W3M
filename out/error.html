@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Network Error - W3M</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #09090b; /* zinc-950 */
+      color: #fafafa; /* zinc-50 */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 24px;
+      color: #ef4444; /* red-500 */
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0 0 12px;
+    }
+    p {
+      color: #a1a1aa; /* zinc-400 */
+      margin: 0 0 32px;
+      max-width: 85%;
+      line-height: 1.5;
+    }
+    button {
+      background-color: #fafafa;
+      color: #09090b;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:active {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 12h20" stroke-dasharray="4 4" />
+    <path d="M12 2v20" stroke-dasharray="4 4" />
+    <circle cx="12" cy="12" r="10" />
+    <path d="M8 12a4 4 0 0 0 8 0" />
+  </svg>
+  <h1>Connection Lost</h1>
+  <p>W3M requires an internet connection. Please check your Wi-Fi or mobile data and try again.</p>
+  <!-- Replace with your actual server URL -->
+  <button onclick="window.location.href = 'https://w-3m.vercel.app'">Try Again</button>
+</body>
+</html>
