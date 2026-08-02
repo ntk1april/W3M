@@ -16,6 +16,7 @@ import {
   Loader2,
   Edit2,
   Trash2,
+  List,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -156,7 +157,7 @@ export default function DashboardPage() {
           </div>
 
           {accounts.length === 0 ? (
-            <div className="bg-card rounded-2xl border border-border p-8 text-center">
+            <div className="bg-card rounded-2xl border border-border p-8 text-center h-100 flex flex-col justify-center">
               <Wallet className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
               <p className="font-semibold">No accounts yet</p>
               <p className="text-sm text-muted-foreground mb-4">
@@ -238,16 +239,20 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="bg-card rounded-2xl border border-border overflow-hidden h-100 flex flex-col">
+          <div className="bg-card rounded-2xl border border-border h-100 flex flex-col">
             {recentTransactions.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-                <p className="text-2xl mb-2">💸</p>
-                <p className="font-medium">No transactions yet</p>
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                {/* <p className="text-2xl mb-2">💸</p> */}
+                <List className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <p className="font-semibold ">No transactions today</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add your first transaction to start tracking
+                </p>
                 <button
                   onClick={() => setIsAddDialogOpen(true)}
-                  className="text-sm text-primary hover:underline flex items-center gap-1"
+                  className="text-primary font-medium hover:underline text-sm"
                 >
-                  Add your first transaction <Plus className="w-3 h-3" />
+                  Add your first transaction +
                 </button>
                 {/* <p className="text-sm">
                   Add your first transaction using the + button

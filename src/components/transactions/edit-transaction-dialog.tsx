@@ -25,6 +25,8 @@ export function EditTransactionDialog({
 }: EditTransactionDialogProps) {
   const [mounted, setMounted] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [showAllAccounts, setShowAllAccounts] = useState(false);
+  const [showAllToAccounts, setShowAllToAccounts] = useState(false);
   const { data: accounts = [] } = useAccounts();
   const { data: categories = [] } = useCategories();
   const updateTransaction = useUpdateTransaction();
@@ -56,12 +58,56 @@ export function EditTransactionDialog({
         toAccountId: transactionToEdit.toAccountId || "",
         date: new Date(transactionToEdit.date),
       });
+      setShowAllAccounts(false);
+      setShowAllToAccounts(false);
     }
   }, [open, transactionToEdit, reset]);
 
   const selectedType = watch("type");
   const selectedCategoryId = watch("categoryId");
   const selectedAccountId = watch("accountId");
+  const watchAmount = watch("amount");
+  const inputAmount =
+    typeof watchAmount === "number" ? watchAmount : parseFloat(watchAmount) || 0;
+
+  const getBaseBalance = (account: Account) => {
+    if (!transactionToEdit) return account.balance;
+    const origAmount = transactionToEdit.amount || 0;
+    const origType = transactionToEdit.type;
+    const origAccountId = transactionToEdit.accountId;
+    const origToAccountId = transactionToEdit.toAccountId;
+
+    if (origType === "EXPENSE" && account.id === origAccountId) {
+      return account.balance + origAmount;
+    }
+    if (origType === "INCOME" && account.id === origAccountId) {
+      return account.balance - origAmount;
+    }
+    if (origType === "TRANSFER") {
+      if (account.id === origAccountId) {
+        return account.balance + origAmount;
+      }
+      if (account.id === origToAccountId) {
+        return account.balance - origAmount;
+      }
+    }
+    return account.balance;
+  };
+
+  const getProjectedBalance = (account: Account, isSource: boolean) => {
+    if (!inputAmount || inputAmount <= 0) return null;
+    const base = getBaseBalance(account);
+    if (selectedType === "EXPENSE") {
+      return base - inputAmount;
+    }
+    if (selectedType === "INCOME") {
+      return base + inputAmount;
+    }
+    if (selectedType === "TRANSFER") {
+      return isSource ? base - inputAmount : base + inputAmount;
+    }
+    return null;
+  };
 
   const filteredCategories = categories.filter(
     (c: Category) => c.type === selectedType,
@@ -270,36 +316,74 @@ export function EditTransactionDialog({
                 <Controller
                   name="accountId"
                   control={control}
-                  render={({ field }) => (
-                    <div className="grid grid-cols-2 gap-2">
-                      {accounts.map((account: Account) => (
-                        <button
-                          key={account.id}
-                          type="button"
-                          onClick={() => field.onChange(account.id)}
-                          className={cn(
-                            "p-3 rounded-xl border text-left transition-all",
-                            field.value === account.id
-                              ? "border-primary bg-primary/10"
-                              : "border-border hover:bg-muted",
-                          )}
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full shrink-0"
-                              style={{ background: account.color }}
-                            />
-                            <span className="text-sm font-medium truncate">
-                              {account.name}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {formatCurrency(account.balance)}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  render={({ field }) => {
+                    const visibleAccounts = showAllAccounts
+                      ? accounts
+                      : accounts.slice(0, 4);
+                    return (
+                      <>
+                        <div className="grid grid-cols-2 gap-2">
+                          {visibleAccounts.map((account: Account) => {
+                            const projected = getProjectedBalance(account, true);
+                            return (
+                              <button
+                                key={account.id}
+                                type="button"
+                                onClick={() => field.onChange(account.id)}
+                                className={cn(
+                                  "p-3 rounded-xl border text-left transition-all",
+                                  field.value === account.id
+                                    ? "border-primary bg-primary/10"
+                                    : "border-border hover:bg-muted",
+                                )}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="w-3 h-3 rounded-full shrink-0"
+                                    style={{ background: account.color }}
+                                  />
+                                  <span className="text-sm font-medium truncate">
+                                    {account.name}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 flex-wrap">
+                                  <span>{formatCurrency(account.balance)}</span>
+                                  {projected !== null && (
+                                    <>
+                                      <span className="text-muted-foreground">→</span>
+                                      <span
+                                        className={cn(
+                                          "font-bold",
+                                          projected < 0
+                                            ? "text-destructive"
+                                            : selectedType === "INCOME"
+                                              ? "text-green-600 dark:text-green-400"
+                                              : "text-red-600 dark:text-red-400",
+                                        )}
+                                      >
+                                        {formatCurrency(projected)}
+                                      </span>
+                                    </>
+                                  )}
+                                </p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {accounts.length > 4 && (
+                          <button
+                            type="button"
+                            onClick={() => setShowAllAccounts(!showAllAccounts)}
+                            className="w-full mt-2 text-xs font-medium text-primary hover:underline text-center"
+                          >
+                            {showAllAccounts
+                              ? "Show less ▲"
+                              : `Show all accounts (${accounts.length}) ▼`}
+                          </button>
+                        )}
+                      </>
+                    );
+                  }}
                 />
                 {errors.accountId && (
                   <p className="text-destructive text-xs mt-1">
@@ -317,38 +401,75 @@ export function EditTransactionDialog({
                   <Controller
                     name="toAccountId"
                     control={control}
-                    render={({ field }) => (
-                      <div className="grid grid-cols-2 gap-2">
-                        {accounts
-                          .filter((a) => a.id !== selectedAccountId)
-                          .map((account: Account) => (
+                    render={({ field }) => {
+                      const toAccountsList = accounts.filter(
+                        (a) => a.id !== selectedAccountId,
+                      );
+                      const visibleToAccounts = showAllToAccounts
+                        ? toAccountsList
+                        : toAccountsList.slice(0, 4);
+                      return (
+                        <>
+                          <div className="grid grid-cols-2 gap-2">
+                            {visibleToAccounts.map((account: Account) => {
+                              const projected = getProjectedBalance(account, false);
+                              return (
+                                <button
+                                  key={account.id}
+                                  type="button"
+                                  onClick={() => field.onChange(account.id)}
+                                  className={cn(
+                                    "p-3 rounded-xl border text-left transition-all",
+                                    field.value === account.id
+                                      ? "border-primary bg-primary/10"
+                                      : "border-border hover:bg-muted",
+                                  )}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className="w-3 h-3 rounded-full shrink-0"
+                                      style={{ background: account.color }}
+                                    />
+                                    <span className="text-sm font-medium truncate">
+                                      {account.name}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 flex-wrap">
+                                    <span>{formatCurrency(account.balance)}</span>
+                                    {projected !== null && (
+                                      <>
+                                        <span className="text-muted-foreground">→</span>
+                                        <span
+                                          className={cn(
+                                            "font-bold",
+                                            projected < 0
+                                              ? "text-destructive"
+                                              : "text-green-600 dark:text-green-400",
+                                          )}
+                                        >
+                                          {formatCurrency(projected)}
+                                        </span>
+                                      </>
+                                    )}
+                                  </p>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {toAccountsList.length > 4 && (
                             <button
-                              key={account.id}
                               type="button"
-                              onClick={() => field.onChange(account.id)}
-                              className={cn(
-                                "p-3 rounded-xl border text-left transition-all",
-                                field.value === account.id
-                                  ? "border-primary bg-primary/10"
-                                  : "border-border hover:bg-muted",
-                              )}
+                              onClick={() => setShowAllToAccounts(!showAllToAccounts)}
+                              className="w-full mt-2 text-xs font-medium text-primary hover:underline text-center"
                             >
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className="w-3 h-3 rounded-full shrink-0"
-                                  style={{ background: account.color }}
-                                />
-                                <span className="text-sm font-medium truncate">
-                                  {account.name}
-                                </span>
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {formatCurrency(account.balance)}
-                              </p>
+                              {showAllToAccounts
+                                ? "Show less ▲"
+                                : `Show all accounts (${toAccountsList.length}) ▼`}
                             </button>
-                          ))}
-                      </div>
-                    )}
+                          )}
+                        </>
+                      );
+                    }}
                   />
                   {errors.toAccountId && (
                     <p className="text-destructive text-xs mt-1">
