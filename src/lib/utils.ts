@@ -10,11 +10,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number): string {
+  const isNegative = amount < 0;
   const formatted = new Intl.NumberFormat('th-TH', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   }).format(Math.abs(amount))
-  return `฿${formatted}`
+  return `${isNegative ? '-' : ''}฿${formatted}`
 }
 
 export function formatDate(date: Date | string): string {
