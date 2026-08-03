@@ -39,7 +39,7 @@ export async function GET(request: Request) {
       if (endDate) (where.date as Record<string, unknown>).lte = new Date(endDate)
     }
 
-    const [transactions, total] = await Promise.all([
+    const [transactions, total, statsAgg] = await Promise.all([
       prisma.transaction.findMany({
         where,
         include: {
@@ -52,32 +52,29 @@ export async function GET(request: Request) {
         skip: offset,
       }),
       prisma.transaction.count({ where }),
+      prisma.transaction.groupBy({
+        by: ['type'],
+        where,
+        _sum: { amount: true },
+      }),
     ])
 
-    // Calculate stats correctly for all transactions matching the filter (not just the first page)
-    const allTransactions = await prisma.transaction.findMany({
-      where,
-      select: { type: true, amount: true, accountId: true, toAccountId: true }
-    });
+    const getStat = (type: string) =>
+      statsAgg.find((s) => s.type === type)?._sum?.amount || 0
 
-    let totalIncome = 0;
-    let totalExpense = 0;
+    let totalIncome = getStat('INCOME')
+    let totalExpense = getStat('EXPENSE')
 
-    for (const t of allTransactions) {
-      if (t.type === 'INCOME') {
-        totalIncome += t.amount;
-      } else if (t.type === 'EXPENSE') {
-        totalExpense += t.amount;
-      } else if (t.type === 'TRANSFER') {
-        if (accountId) {
-          // If filtering by a specific account, count transfers in/out of it
-          if (t.accountId === accountId) {
-            totalExpense += t.amount; // Money leaving the selected account
-          }
-          if (t.toAccountId === accountId) {
-            totalIncome += t.amount; // Money entering the selected account
-          }
-        }
+    // For account-filtered transfer stats, we need a targeted query
+    if (accountId) {
+      const transferStats = await prisma.transaction.groupBy({
+        by: ['accountId', 'toAccountId'],
+        where: { ...where, type: 'TRANSFER' },
+        _sum: { amount: true },
+      })
+      for (const t of transferStats) {
+        if (t.accountId === accountId) totalExpense += t._sum.amount || 0
+        if (t.toAccountId === accountId) totalIncome += t._sum.amount || 0
       }
     }
 

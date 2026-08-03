@@ -134,23 +134,23 @@ export default function TransactionsPage() {
     <div className="space-y-6 animate-fade-in">
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-card rounded-2xl border border-border p-3 sm:p-4">
+        <div className="bg-card rounded-2xl border border-border p-2 sm:p-4">
           <p className="text-xs text-muted-foreground mb-1">Total Income</p>
-          <p className="text-base sm:text-xl font-bold text-green-600 dark:text-green-400 truncate">
+          <p className="text-xs sm:text-xl font-bold text-green-600 dark:text-green-400 truncate">
             +{formatCurrency(totalIncome)}
           </p>
         </div>
-        <div className="bg-card rounded-2xl border border-border p-3 sm:p-4">
+        <div className="bg-card rounded-2xl border border-border p-2 sm:p-4">
           <p className="text-xs text-muted-foreground mb-1">Total Expense</p>
-          <p className="text-base sm:text-xl font-bold text-red-600 dark:text-red-400 truncate">
+          <p className="text-xs sm:text-xl font-bold text-red-600 dark:text-red-400 truncate">
             -{formatCurrency(totalExpense)}
           </p>
         </div>
-        <div className="bg-card rounded-2xl border border-border p-3 sm:p-4">
+        <div className="bg-card rounded-2xl border border-border p-2 sm:p-4">
           <p className="text-xs text-muted-foreground mb-1">Net Balance</p>
           <p
             className={cn(
-              "text-base sm:text-xl font-bold truncate",
+              "text-xs sm:text-xl font-bold truncate",
               totalIncome - totalExpense >= 0
                 ? "text-green-600 dark:text-green-400"
                 : "text-red-600 dark:text-red-400",
@@ -312,15 +312,15 @@ export default function TransactionsPage() {
                         transaction.type === "INCOME"
                           ? "text-green-600 dark:text-green-400"
                           : transaction.type === "TRANSFER"
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-red-600 dark:text-red-400",
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-red-600 dark:text-red-400",
                       )}
                     >
                       {transaction.type === "INCOME"
                         ? "+"
                         : transaction.type === "TRANSFER"
-                          ? ""
-                          : "-"}
+                        ? ""
+                        : "-"}
                       {formatCurrency(transaction.amount)}
                     </p>
                     <div className="flex gap-1 justify-end mt-1">
@@ -366,8 +366,8 @@ export default function TransactionsPage() {
                           transaction.type === "INCOME"
                             ? "badge-income"
                             : transaction.type === "TRANSFER"
-                              ? "text-blue-600 dark:text-blue-400 bg-blue-900/10 dark:bg-blue-500/10 border border-blue-600 dark:border-blue-400"
-                              : "badge-expense",
+                            ? "text-blue-600 dark:text-blue-400 bg-blue-900/10 dark:bg-blue-500/10 border border-blue-600 dark:border-blue-400"
+                            : "badge-expense",
                         )}
                       >
                         {transaction.type}
@@ -415,15 +415,15 @@ export default function TransactionsPage() {
                         transaction.type === "INCOME"
                           ? "text-green-600 dark:text-green-400"
                           : transaction.type === "TRANSFER"
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-red-600 dark:text-red-400",
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-red-600 dark:text-red-400",
                       )}
                     >
                       {transaction.type === "INCOME"
                         ? "+"
                         : transaction.type === "TRANSFER"
-                          ? ""
-                          : "-"}
+                        ? ""
+                        : "-"}
                       {formatCurrency(transaction.amount)}
                     </p>
                   </div>
@@ -451,12 +451,14 @@ export default function TransactionsPage() {
             ))}
           </div>
         )}
-        
+
         {/* Pagination Controls */}
         {transactions.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-border bg-card gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Rows per page:</span>
+              <span className="text-sm text-muted-foreground">
+                Rows per page:
+              </span>
               <select
                 value={limit}
                 onChange={(e) => {
@@ -473,7 +475,8 @@ export default function TransactionsPage() {
 
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">
-                {total === 0 ? 0 : (page - 1) * limit + 1}-{Math.min(page * limit, total)} of {total}
+                {total === 0 ? 0 : (page - 1) * limit + 1}-
+                {Math.min(page * limit, total)} of {total}
               </span>
               <div className="flex items-center gap-1">
                 <button

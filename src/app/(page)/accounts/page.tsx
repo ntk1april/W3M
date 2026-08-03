@@ -247,8 +247,8 @@ function AccountFormDialog({
                 {selectedType === "BANK"
                   ? "🏦"
                   : selectedType === "WALLET"
-                    ? "👛"
-                    : "💵"}
+                  ? "👛"
+                  : "💵"}
               </div>
               <div>
                 <p className="font-semibold text-sm">{watch("name")}</p>
@@ -338,8 +338,8 @@ function SortableAccountCard({
               {account.type === "BANK"
                 ? "🏦"
                 : account.type === "WALLET"
-                  ? "👛"
-                  : "💵"}
+                ? "👛"
+                : "💵"}
             </div>
             <div>
               <p className="font-bold">{account.name}</p>
@@ -430,8 +430,8 @@ function SortableAccountRow({
         {account.type === "BANK"
           ? "🏦"
           : account.type === "WALLET"
-            ? "👛"
-            : "💵"}
+          ? "👛"
+          : "💵"}
       </div>
 
       {/* Color dot */}
@@ -476,7 +476,7 @@ export default function AccountsPage() {
   const deleteAccount = useDeleteAccount();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | undefined>();
-  const [viewMode, setViewMode] = useState<ViewMode>("card");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   // Persist view preference
   useEffect(() => {
