@@ -27,6 +27,36 @@ export async function PUT(
 
     const newAmount = parseFloat(amount)
 
+    // Balance check for EXPENSE and TRANSFER
+    if (type === 'EXPENSE' || (type === 'TRANSFER' && toAccountId)) {
+      const sourceAccount = await prisma.account.findUnique({
+        where: { id: accountId, userId: user.id },
+        select: { balance: true, name: true },
+      })
+      if (!sourceAccount) {
+        return NextResponse.json({ error: 'Source account not found' }, { status: 404 })
+      }
+      
+      let availableBalance = sourceAccount.balance;
+      // If updating the same account, refund the original amount first to see true available balance
+      if (original.accountId === accountId) {
+        if (original.type === 'EXPENSE' || original.type === 'TRANSFER') {
+          availableBalance += original.amount;
+        } else if (original.type === 'INCOME') {
+          availableBalance -= original.amount;
+        }
+      }
+      
+      if (availableBalance < newAmount) {
+        return NextResponse.json(
+          {
+            error: `Insufficient balance in "${sourceAccount.name}". Available: ${availableBalance.toFixed(2)}, Required: ${newAmount.toFixed(2)}`,
+          },
+          { status: 400 },
+        )
+      }
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dbOperations: any[] = [
       prisma.transaction.update({

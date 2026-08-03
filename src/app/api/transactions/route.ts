@@ -102,8 +102,8 @@ export async function POST(request: Request) {
     const { type, title, amount, date, accountId, toAccountId, categoryId, note, receipt } = body
     const parsedAmount = parseFloat(amount)
 
-    // ── Balance check for TRANSFER ─────────────────────────────────
-    if (type === 'TRANSFER' && toAccountId) {
+    // ── Balance check for EXPENSE and TRANSFER ─────────────────────────────────
+    if (type === 'EXPENSE' || (type === 'TRANSFER' && toAccountId)) {
       const sourceAccount = await prisma.account.findUnique({
         where: { id: accountId, userId: user.id },
         select: { balance: true, name: true },

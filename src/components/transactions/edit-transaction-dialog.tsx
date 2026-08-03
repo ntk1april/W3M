@@ -94,6 +94,12 @@ export function EditTransactionDialog({
     return account.balance;
   };
 
+  const selectedAccount = accounts.find((a: Account) => a.id === selectedAccountId);
+  const isInsufficientFunds = selectedAccount && 
+    (selectedType === "EXPENSE" || selectedType === "TRANSFER") && 
+    inputAmount > 0 && 
+    getBaseBalance(selectedAccount) < inputAmount;
+
   const getProjectedBalance = (account: Account, isSource: boolean) => {
     if (!inputAmount || inputAmount <= 0) return null;
     const base = getBaseBalance(account);
@@ -498,13 +504,19 @@ export function EditTransactionDialog({
             </div>
 
             {/* Submit */}
+            {isInsufficientFunds && (
+              <div className="p-3 rounded-xl bg-destructive/10 text-destructive text-sm font-medium text-center">
+                Not enough balance in {selectedAccount.name}.
+              </div>
+            )}
             <button
               type="submit"
               disabled={
                 updateTransaction.isPending ||
                 !selectedAccountId ||
                 (selectedType !== "TRANSFER" && !selectedCategoryId) ||
-                (selectedType === "TRANSFER" && !watch("toAccountId"))
+                (selectedType === "TRANSFER" && !watch("toAccountId")) ||
+                !!isInsufficientFunds
               }
               className="w-full h-14 bg-primary text-primary-foreground font-bold rounded-2xl
                   flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
