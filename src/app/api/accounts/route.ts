@@ -12,31 +12,17 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Ensure user exists in DB and is in sync
-    const username = user.user_metadata?.username;
-    const displayName = user.user_metadata?.display_name;
-
-    await prisma.user.upsert({
-      where: { id: user.id },
-      update: { 
-        email: user.email!,
-        ...(username && { username }),
-        ...(displayName && { displayName }),
-      },
-      create: { 
-        id: user.id, 
-        email: user.email!,
-        ...(username && { username }),
-        ...(displayName && { displayName }),
-      },
-    })
-
     const accounts = await prisma.account.findMany({
       where: { userId: user.id },
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
     })
 
-    return NextResponse.json(accounts)
+    return NextResponse.json(accounts, {
+      headers: {
+        // Cache on client for 30s, allow Vercel edge to serve stale for 60s while revalidating
+        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60',
+      },
+    })
   } catch (error) {
     console.error('Error fetching accounts:', error)
     return NextResponse.json({ error: 'Failed to fetch accounts' }, { status: 500 })
@@ -56,13 +42,6 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { name, type, balance, color, icon } = body
 
-    // Ensure user exists in DB
-    await prisma.user.upsert({
-      where: { id: user.id },
-      update: { email: user.email! },
-      create: { id: user.id, email: user.email! },
-    })
-
     const account = await prisma.account.create({
       data: {
         userId: user.id,
@@ -71,6 +50,12 @@ export async function POST(request: Request) {
         balance: parseFloat(balance),
         color: color || '#2563EB',
         icon: icon || 'wallet',
+      },
+      // Only return what the client needs — skip expensive JOINs
+      select: {
+        id: true, userId: true, name: true, type: true,
+        balance: true, color: true, icon: true, order: true,
+        createdAt: true, updatedAt: true,
       },
     })
 

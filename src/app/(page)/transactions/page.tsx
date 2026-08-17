@@ -276,10 +276,11 @@ export default function TransactionsPage() {
             {/* Table Header — desktop only */}
             <div className="hidden sm:grid grid-cols-12 gap-3 px-4 py-3 bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <div className="col-span-1">Cat.</div>
-              <div className="col-span-4">Name</div>
+              <div className="col-span-3">Name</div>
               <div className="col-span-2">Account</div>
-              <div className="col-span-2">Date/Time</div>
-              <div className="col-span-2 text-right">Amount</div>
+              <div className="col-span-2">Date</div>
+              <div className="col-span-2">Note</div>
+              <div className="col-span-1 text-right">Amount</div>
               <div className="col-span-1 text-right">Act.</div>
             </div>
 
@@ -301,6 +302,11 @@ export default function TransactionsPage() {
                         ? `${transaction.account?.name} → ${transaction.toAccount?.name}`
                         : transaction.category?.name}
                     </p>
+                    {transaction.note && (
+                      <p className="text-xs text-muted-foreground/70 truncate italic">
+                        {transaction.note}
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {formatDateTime(transaction.date)}
                     </p>
@@ -355,7 +361,7 @@ export default function TransactionsPage() {
                   </div>
 
                   {/* Name */}
-                  <div className="col-span-4 min-w-0">
+                  <div className="col-span-3 min-w-0">
                     <p className="font-medium text-sm truncate">
                       {transaction.title}
                     </p>
@@ -407,8 +413,21 @@ export default function TransactionsPage() {
                     </p>
                   </div>
 
+                  {/* Note */}
+                  <div className="col-span-2 min-w-0">
+                    {transaction.note ? (
+                      <p className="text-sm text-muted-foreground italic truncate">
+                        {transaction.note}
+                      </p>
+                    ) : (
+                      <span className="text-sm text-muted-foreground/30">
+                        —
+                      </span>
+                    )}
+                  </div>
+
                   {/* Amount */}
-                  <div className="col-span-2 text-right">
+                  <div className="col-span-1 text-right">
                     <p
                       className={cn(
                         "font-bold text-sm",

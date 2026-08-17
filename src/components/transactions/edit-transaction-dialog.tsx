@@ -57,6 +57,7 @@ export function EditTransactionDialog({
         accountId: transactionToEdit.accountId,
         toAccountId: transactionToEdit.toAccountId || "",
         date: new Date(transactionToEdit.date),
+        note: transactionToEdit.note || "",
       });
       setShowAllAccounts(false);
       setShowAllToAccounts(false);

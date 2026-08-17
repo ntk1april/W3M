@@ -31,6 +31,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
       if (!res.ok) throw new Error('Failed to fetch transactions')
       return res.json()
     },
+    staleTime: 30_000,
   })
 }
 

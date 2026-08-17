@@ -133,7 +133,8 @@ export async function POST(request: Request) {
           receipt: receipt || null,
           date: new Date(date),
         },
-        include: { account: true, toAccount: true, category: true },
+        // Return only scalars — client will refetch with full includes via React Query invalidation
+        select: { id: true, type: true, amount: true, title: true, date: true, accountId: true },
       })
     ]
 

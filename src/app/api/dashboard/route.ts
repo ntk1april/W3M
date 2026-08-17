@@ -105,19 +105,25 @@ export async function GET() {
     return NextResponse.json({
       accounts,
       totalBalance: accounts.reduce((sum, a) => sum + a.balance, 0),
-      todayIncome: getStat(todayStats, "INCOME"),
-      todayExpense: getStat(todayStats, "EXPENSE"),
-      weekIncome: getStat(weekStats, "INCOME"),
-      weekExpense: getStat(weekStats, "EXPENSE"),
-      monthIncome: getStat(monthStats, "INCOME"),
-      monthExpense: getStat(monthStats, "EXPENSE"),
-      yearIncome: getStat(yearStats, "INCOME"),
-      yearExpense: getStat(yearStats, "EXPENSE"),
-      allTimeIncome: getStat(allTimeStats, "INCOME"),
-      allTimeExpense: getStat(allTimeStats, "EXPENSE"),
+      todayIncome: getStat(todayStats, 'INCOME'),
+      todayExpense: getStat(todayStats, 'EXPENSE'),
+      weekIncome: getStat(weekStats, 'INCOME'),
+      weekExpense: getStat(weekStats, 'EXPENSE'),
+      monthIncome: getStat(monthStats, 'INCOME'),
+      monthExpense: getStat(monthStats, 'EXPENSE'),
+      yearIncome: getStat(yearStats, 'INCOME'),
+      yearExpense: getStat(yearStats, 'EXPENSE'),
+      allTimeIncome: getStat(allTimeStats, 'INCOME'),
+      allTimeExpense: getStat(allTimeStats, 'EXPENSE'),
       recentTransactions,
       monthlyData,
-    });
+    }, {
+      headers: {
+        // Never cache dashboard — it changes after every transaction.
+        // React Query's in-memory cache handles deduplication instead.
+        'Cache-Control': 'no-store',
+      },
+    })
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
     return NextResponse.json(

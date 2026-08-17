@@ -10,6 +10,8 @@ export function useAccounts() {
       if (!res.ok) throw new Error('Failed to fetch accounts')
       return res.json()
     },
+    // Don't refetch for 30 seconds — mutations explicitly invalidate anyway
+    staleTime: 30_000,
   })
 }
 

@@ -107,14 +107,27 @@ export function Sidebar({ user }: SidebarProps) {
         {/* User Profile */}
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted transition-colors cursor-pointer">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #2563EB, #7C3AED)",
-              }}
-            >
-              {getInitials(
-                user.user_metadata?.display_name || user.email || "U",
+            <div className="w-8 h-8 rounded-full overflow-hidden ring-1 ring-border cursor-pointer shrink-0">
+              {user.user_metadata?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center text-xs font-bold text-white"
+                  style={{
+                    background: "linear-gradient(135deg, #2563EB, #7C3AED)",
+                  }}
+                >
+                  {(
+                    user.user_metadata?.display_name?.[0] ||
+                    user.email?.split("@")[0]?.[0] ||
+                    "U"
+                  ).toUpperCase()}
+                </div>
               )}
             </div>
             <div className="flex-1 min-w-0">

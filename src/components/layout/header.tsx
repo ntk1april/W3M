@@ -71,7 +71,7 @@ export function Header({ user }: HeaderProps) {
       <div className="ml-auto">
         <div className="flex items-center gap-2">
           {/* Manual Refresh Button */}
-          <button
+          {/* <button
             onClick={async () => {
               if (isRefreshing) return;
               setIsRefreshing(true);
@@ -86,7 +86,7 @@ export function Header({ user }: HeaderProps) {
             title="Refresh data"
           >
             <RefreshCw className={cn("w-4.5 h-4.5", isRefreshing && "animate-spin text-primary")} size={18} />
-          </button>
+          </button> */}
 
           {/* Theme Toggle */}
           <button

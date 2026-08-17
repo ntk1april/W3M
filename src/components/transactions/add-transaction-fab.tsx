@@ -15,7 +15,7 @@ export function AddTransactionFab() {
         title="Add Transaction"
         id="fab-add-transaction"
       >
-        <ArrowLeftRight className="w-6 h-6" />
+        <Plus className="w-6 h-6" />
       </button>
       <AddTransactionDialog open={open} onOpenChange={setOpen} />
     </>
