@@ -18,11 +18,11 @@ The `capacitor.config.ts` has `server.url` set. The native app just opens that U
 
 ## Prerequisites
 
-| Tool | Install |
-|---|---|
+| Tool               | Install                                          |
+| ------------------ | ------------------------------------------------ |
 | **Android Studio** | [Download](https://developer.android.com/studio) |
-| **JDK 17+** | Bundled with Android Studio |
-| **Node.js 20+** | Already installed |
+| **JDK 17+**        | Bundled with Android Studio                      |
+| **Node.js 20+**    | Already installed                                |
 
 ---
 
@@ -31,15 +31,18 @@ The `capacitor.config.ts` has `server.url` set. The native app just opens that U
 Edit `capacitor.config.ts` depending on your environment:
 
 ### For Production (Vercel/Render)
+
 ```ts
 server: {
   url: 'https://w-3m.vercel.app',
   androidScheme: 'https',
 }
 ```
-*(No local server required to run the app on the phone)*
+
+_(No local server required to run the app on the phone)_
 
 ### For Local Development (Emulator)
+
 ```ts
 server: {
   url: 'http://10.0.2.2:3000',
@@ -47,7 +50,8 @@ server: {
   androidScheme: 'http',
 }
 ```
-*(Requires running `npm run dev:android` so the emulator can reach the host)*
+
+_(Requires running `npm run dev:android` so the emulator can reach the host)_
 
 ---
 
@@ -70,9 +74,11 @@ npm run cap:open
 This opens Android Studio with the `android/` folder as the project.
 
 ### Debug APK (for testing)
+
 In Android Studio: Press the **Run (▶)** button at the top to launch on your selected emulator or connected device.
 
 ### Release APK (for distribution)
+
 In Android Studio: Go to **Build → Generate Signed Bundle / APK**
 
 ---
@@ -81,7 +87,7 @@ In Android Studio: Go to **Build → Generate Signed Bundle / APK**
 
 The icon and splash screens are generated from the source files in the `assets/` folder.
 
-1. Replace `assets/icon-only.png` with your new logo (PNG, at least 1024x1024, square).
+1. Replace `assets/icon.png` with your new logo (PNG, at least 1024x1024, square).
 2. Run the icon generator:
    ```bash
    npx capacitor-assets generate --android
