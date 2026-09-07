@@ -629,7 +629,7 @@ export default function DashboardPage() {
                 label: "This Week",
                 income: weekIncome,
                 expense: weekExpense,
-                icon: "🗓️",
+                icon: "📆",
               },
               {
                 label: "This Month",
@@ -644,7 +644,7 @@ export default function DashboardPage() {
                 icon: "📆",
               },
               {
-                label: "All Time",
+                label: "All Time (from jan 1 2023)",
                 income: allTimeIncome,
                 expense: allTimeExpense,
                 icon: "💰",
