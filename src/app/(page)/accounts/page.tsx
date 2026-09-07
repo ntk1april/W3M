@@ -348,7 +348,7 @@ function SortableAccountCard({
               </span>
             </div>
           </div>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex gap-1 opacity-75 group-hover:opacity-100 transition-opacity">
             <button
               onClick={onEdit}
               className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center"
